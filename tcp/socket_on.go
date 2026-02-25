@@ -1,0 +1,117 @@
+package tcp
+
+import (
+	"fmt"
+
+	"github.com/grafana/sobek"
+	"go.k6.io/k6/metrics"
+)
+
+var events = map[string]struct{}{ //nolint:gochecknoglobals
+	"connect": {},
+	"data":    {},
+	"close":   {},
+	"error":   {},
+	"timeout": {},
+}
+
+func (s *socket) on(event string, handler sobek.Callable) {
+	if _, ok := events[event]; !ok {
+		s.log.WithField("event", event).Warn("Unknown event type")
+
+		return
+	}
+
+	if _, ok := s.handlers.Load(event); ok {
+		s.log.WithField("event", event).Warn("Event handler already registered, overriding")
+	}
+
+	s.log.WithField("event", event).Debug("Event handler registered")
+
+	s.handlers.Store(event, handler)
+}
+
+func (s *socket) fire(event string, args ...sobek.Value) bool {
+	return s.fireAndCleanup(nil, event, args...)
+}
+
+func (s *socket) fireAndCleanup(cleanup func(), event string, args ...sobek.Value) bool {
+	f, ok := s.handlers.Load(event)
+	if !ok {
+		if cleanup != nil {
+			cleanup()
+		}
+
+		return false
+	}
+
+	fn, ok := f.(sobek.Callable)
+	if !ok {
+		if cleanup != nil {
+			cleanup()
+		}
+
+		return false
+	}
+
+	s.log.WithField("event", event).Debug("Queuing event handler")
+
+	// Queue the event asynchronously to prevent deadlock when firing events from within event handlers
+	go func() {
+		select {
+		case s.callChan <- func() error {
+			if cleanup != nil {
+				defer cleanup()
+			}
+
+			s.log.WithField("event", event).Debug("Firing event handler")
+
+			_, err := fn(sobek.Undefined(), args...)
+
+			return err
+		}:
+
+		case <-s.vu.Context().Done():
+			s.log.WithField("event", event).Debug("Context cancelled, skipping event")
+
+			if cleanup != nil {
+				cleanup()
+			}
+		}
+	}()
+
+	return true
+}
+
+func (s *socket) handleError(err error, method string, ts *metrics.TagSet) error {
+	s.log.WithField("error", err).WithField("method", method).Error("Handling TCP error")
+
+	s.addErrorMetrics(ts)
+
+	wrapped := newTCPError(err, method)
+
+	if s.fire("error", s.vu.Runtime().ToValue(wrapped)) {
+		return nil
+	}
+
+	return wrapped
+}
+
+// TCPError represents an error that occurred during a TCP operation.
+type TCPError struct { //nolint:revive
+	Name    string
+	Method  string
+	Message string
+}
+
+func newTCPError(err error, method string) *TCPError {
+	return &TCPError{
+		Name:    "TCPError",
+		Method:  method,
+		Message: err.Error(),
+	}
+}
+
+func (e *TCPError) Error() string {
+	return fmt.Sprintf("TCP error during %s: %v", e.Method, e.Message)
+}

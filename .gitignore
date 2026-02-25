@@ -1,0 +1,9 @@
+/k6
+/k6.exe
+/xk6
+/xk6.exe
+/with-echo
+/with-echo.exe
+/build
+coverage.txt
+coverage.out
