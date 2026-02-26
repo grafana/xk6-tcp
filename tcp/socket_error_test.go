@@ -136,22 +136,22 @@ func TestConnectOptionsAddress(t *testing.T) {
 	}{
 		{
 			name:     "localhost with standard port",
-			opts:     connectOptions{host: "localhost", port: 8080},
+			opts:     connectOptions{Host: "localhost", Port: 8080},
 			expected: "localhost:8080",
 		},
 		{
 			name:     "IP address with port",
-			opts:     connectOptions{host: "192.168.1.1", port: 443},
+			opts:     connectOptions{Host: "192.168.1.1", Port: 443},
 			expected: "192.168.1.1:443",
 		},
 		{
 			name:     "domain with custom port",
-			opts:     connectOptions{host: "example.com", port: 9999},
+			opts:     connectOptions{Host: "example.com", Port: 9999},
 			expected: "example.com:9999",
 		},
 		{
 			name:     "IPv6 address",
-			opts:     connectOptions{host: "::1", port: 80},
+			opts:     connectOptions{Host: "::1", Port: 80},
 			expected: "[::1]:80",
 		},
 	}
@@ -218,8 +218,8 @@ func TestConnectPrepareWithPort(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, s.connectOpts)
-	require.Equal(t, 8080, s.connectOpts.port)
-	require.Equal(t, "example.com", s.connectOpts.host)
+	require.Equal(t, 8080, s.connectOpts.Port)
+	require.Equal(t, "example.com", s.connectOpts.Host)
 }
 
 func TestConnectPrepareWithDefaultHost(t *testing.T) {
@@ -235,8 +235,8 @@ func TestConnectPrepareWithDefaultHost(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, s.connectOpts)
-	require.Equal(t, 8080, s.connectOpts.port)
-	require.Equal(t, "localhost", s.connectOpts.host)
+	require.Equal(t, 8080, s.connectOpts.Port)
+	require.Equal(t, "localhost", s.connectOpts.Host)
 }
 
 func TestConnectPrepareWithInvalidType(t *testing.T) {

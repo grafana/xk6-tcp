@@ -31,11 +31,15 @@ func (s *socket) on(event string, handler sobek.Callable) {
 	s.handlers.Store(event, handler)
 }
 
-func (s *socket) fire(event string, args ...sobek.Value) bool {
+// fire queues an event to be fired in the VU's event loop.
+// Args are converted to sobek.Value inside the event loop to avoid race conditions.
+func (s *socket) fire(event string, args ...any) bool {
 	return s.fireAndCleanup(nil, event, args...)
 }
 
-func (s *socket) fireAndCleanup(cleanup func(), event string, args ...sobek.Value) bool {
+// fireAndCleanup fires an event with a cleanup callback.
+// Args are converted to sobek.Value inside the event loop to avoid race conditions.
+func (s *socket) fireAndCleanup(cleanup func(), event string, args ...any) bool {
 	f, ok := s.handlers.Load(event)
 	if !ok {
 		if cleanup != nil {
@@ -66,7 +70,13 @@ func (s *socket) fireAndCleanup(cleanup func(), event string, args ...sobek.Valu
 
 			s.log.WithField("event", event).Debug("Firing event handler")
 
-			_, err := fn(sobek.Undefined(), args...)
+			// Convert raw Go values to sobek.Value in the event loop
+			sobekArgs := make([]sobek.Value, len(args))
+			for i, arg := range args {
+				sobekArgs[i] = s.vu.Runtime().ToValue(arg)
+			}
+
+			_, err := fn(sobek.Undefined(), sobekArgs...)
 
 			return err
 		}:
@@ -90,7 +100,7 @@ func (s *socket) handleError(err error, method string, ts *metrics.TagSet) error
 
 	wrapped := newTCPError(err, method)
 
-	if s.fire("error", s.vu.Runtime().ToValue(wrapped)) {
+	if s.fire("error", wrapped) {
 		return nil
 	}
 

@@ -52,9 +52,10 @@ func (s *socket) readLoopStep(conn net.Conn, timeout time.Duration) bool {
 		buf.Write(s.readBuf[:n])
 
 		// Fire event with cleanup callback to return buffer to pool
+		// Args are converted to sobek.Value in event loop (avoids race)
 		s.fireAndCleanup(func() {
 			s.bufferPool.Put(buf)
-		}, "data", s.vu.Runtime().ToValue(buf.Bytes()))
+		}, "data", buf.Bytes())
 
 		s.log.WithField("bytes", n).Debug("Read from TCP connection")
 	}

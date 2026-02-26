@@ -15,5 +15,5 @@ func TestModule(t *testing.T) {
 
 func TestIntegration(t *testing.T) { //nolint:paralleltest
 	testscript.RunGlobIntegration(t, filepath.Join("test", "*.test.js"))
-	testscript.RunGlobIntegration(t, filepath.Join("examples", "*"))
+	testscript.RunGlobIntegration(t, filepath.Join("examples", "*.[tj]s"))
 }

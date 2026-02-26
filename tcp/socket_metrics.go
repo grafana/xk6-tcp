@@ -22,8 +22,8 @@ func (s *socket) tags() *metrics.TagSet {
 
 	if s.connectOpts != nil {
 		tags = tags.WithTagsFromMap(s.connectOpts.Tags).
-			With("host", s.connectOpts.host).
-			With("port", strconv.Itoa(s.connectOpts.port))
+			With("host", s.connectOpts.Host).
+			With("port", strconv.Itoa(s.connectOpts.Port))
 	}
 
 	if len(s.endpoints.remoteIP) > 0 {

@@ -58,6 +58,28 @@ The [examples](./examples/) directory contains comprehensive examples demonstrat
 
 **xk6-tcp** fully supports async and event-based programming. You can use async/await patterns with methods like `connectAsync()` and `writeAsync()`, as well as standard JavaScript asynchronous constructs like [setTimeout()](https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout) and [setInterval()](https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval).
 
+## TLS/SSL Support
+
+**xk6-tcp** supports secure TCP connections using TLS/SSL encryption. Enable TLS by setting the `tls` option when connecting:
+
+```javascript
+socket.connect({
+  port: 443,
+  host: "secure.example.com",
+  tls: true  // Enable TLS encryption
+});
+```
+
+TLS configuration (certificates, verification, cipher suites, etc.) is handled by k6's standard [TLS configuration](https://grafana.com/docs/k6/latest/using-k6/protocols/ssl-tls/). This ensures consistency across your k6 tests and leverages k6's robust TLS support.
+
+**Common Use Cases:**
+- Secure database connections (PostgreSQL, MySQL, Redis with TLS)
+- HTTPS-like protocols over raw TCP
+- SMTPS, IMAPS, and other secure mail protocols
+- Message queues with TLS (Kafka, RabbitMQ)
+- Custom secure protocols
+
+See [examples/tls.js](./examples/tls.js), [examples/tls_async.js](./examples/tls_async.js), and [examples/tls_smtp.js](./examples/tls_smtp.js) for complete examples.
 
 ## Event-Driven Usage
 

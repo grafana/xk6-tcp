@@ -61,10 +61,19 @@ declare module "k6/x/tcp" {
    *
    * @example
    * ```typescript
+   * // Basic connection
    * socket.connect({
    *   port: 8080,
    *   host: 'api.example.com',
    *   tags: { service: 'api-server' }
+   * });
+   * 
+   * // Secure TLS connection
+   * socket.connect({
+   *   port: 443,
+   *   host: 'secure.example.com',
+   *   tls: true,
+   *   tags: { protocol: 'tls' }
    * });
    * ```
    */
@@ -73,6 +82,17 @@ declare module "k6/x/tcp" {
     port: number;
     /** The destination hostname or IP address. Defaults to 'localhost' */
     host?: string;
+    /**
+     * Enable TLS/SSL encryption for this connection.
+     * 
+     * When enabled, the socket will perform a TLS handshake after establishing
+     * the TCP connection. TLS configuration (certificates, verification, etc.)
+     * is controlled by k6's standard TLS settings.
+     * 
+     * @see https://grafana.com/docs/k6/latest/using-k6/protocols/ssl-tls/
+     * @default false
+     */
+    tls?: boolean;
     /**
      * Optional key-value pairs for metrics collection and logging.
      * These tags will be attached to connection-related metrics.

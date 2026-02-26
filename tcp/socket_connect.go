@@ -1,6 +1,8 @@
 package tcp
 
 import (
+	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"reflect"
@@ -14,13 +16,16 @@ import (
 const defaultHost = "localhost"
 
 type connectOptions struct {
-	port int
-	host string
-	Tags map[string]string
+	Port int               `js:"port"`
+	Host string            `js:"host"`
+	TLS  bool              `js:"tls"`
+	Tags map[string]string `js:"tags"`
 }
 
+var errNoTLSConfig = errors.New("TLS requested but no TLS config available")
+
 func (co *connectOptions) address() string {
-	return net.JoinHostPort(co.host, strconv.Itoa(co.port))
+	return net.JoinHostPort(co.Host, strconv.Itoa(co.Port))
 }
 
 func (s *socket) connect(portOrOptions sobek.Value, hostOrEmpty sobek.Value) (*sobek.Object, error) {
@@ -76,8 +81,8 @@ func (s *socket) connectPrepare(portOrOptions sobek.Value, hostOrEmpty sobek.Val
 	switch portOrOptions.ExportType() {
 	case reflect.TypeFor[int64](), reflect.TypeFor[string]():
 		opts = &connectOptions{
-			port: int(portOrOptions.ToInteger()),
-			host: defaultHost,
+			Port: int(portOrOptions.ToInteger()),
+			Host: defaultHost,
 		}
 
 	case reflect.TypeFor[map[string]any]():
@@ -85,8 +90,8 @@ func (s *socket) connectPrepare(portOrOptions sobek.Value, hostOrEmpty sobek.Val
 			return err
 		}
 
-		if len(opts.host) == 0 {
-			opts.host = defaultHost
+		if len(opts.Host) == 0 {
+			opts.Host = defaultHost
 		}
 
 		hostOrEmpty = nil
@@ -96,7 +101,7 @@ func (s *socket) connectPrepare(portOrOptions sobek.Value, hostOrEmpty sobek.Val
 	}
 
 	if hostOrEmpty != nil && !sobek.IsUndefined(hostOrEmpty) && !sobek.IsNull(hostOrEmpty) {
-		opts.host = hostOrEmpty.String()
+		opts.Host = hostOrEmpty.String()
 	}
 
 	s.connectOpts = opts
@@ -151,7 +156,7 @@ func (s *socket) resolve() error {
 
 	s.endpoints.remoteIP = ip.String()
 	s.endpoints.remotePort = port
-	s.endpoints.remoteAddr = net.JoinHostPort(s.endpoints.remoteIP, strconv.Itoa(s.connectOpts.port))
+	s.endpoints.remoteAddr = net.JoinHostPort(s.endpoints.remoteIP, strconv.Itoa(s.connectOpts.Port))
 
 	return nil
 }
@@ -160,6 +165,16 @@ func (s *socket) dial() error {
 	conn, err := s.vu.State().Dialer.DialContext(s.vu.Context(), "tcp", s.endpoints.remoteAddr)
 	if err != nil {
 		return err
+	}
+
+	// Wrap with TLS if enabled
+	if s.connectOpts.TLS {
+		tlsConn, err := s.wrapTLS(conn)
+		if err != nil {
+			return err
+		}
+
+		conn = tlsConn
 	}
 
 	localAddr := conn.LocalAddr()
@@ -182,13 +197,43 @@ func (s *socket) dial() error {
 	return nil
 }
 
+func (s *socket) wrapTLS(conn net.Conn) (*tls.Conn, error) {
+	if tlsConfig := s.vu.State().TLSConfig; tlsConfig != nil {
+		// Clone the TLS config to avoid modifying the shared config
+		tlsConfigCopy := tlsConfig.Clone()
+
+		// Set ServerName for SNI if not already set
+		if tlsConfigCopy.ServerName == "" {
+			tlsConfigCopy.ServerName = s.connectOpts.Host
+		}
+
+		// Force HTTP/1.1 to avoid HTTP/2 binary frames
+		// This makes raw TCP responses more readable for testing
+		tlsConfigCopy.NextProtos = []string{"http/1.1"}
+
+		tlsConn := tls.Client(conn, tlsConfigCopy)
+
+		// Perform TLS handshake
+		if err := tlsConn.HandshakeContext(s.vu.Context()); err != nil {
+			_ = conn.Close()
+
+			return nil, fmt.Errorf("TLS handshake failed: %w", err)
+		}
+
+		s.log.WithField("address", s.endpoints.remoteAddr).Debug("TLS handshake completed")
+
+		return tlsConn, nil
+	}
+
+	_ = conn.Close()
+
+	return nil, errNoTLSConfig
+}
+
 // destroy closes the connection and cleans up resources.
 // Safe to call multiple times - cleanup happens exactly once.
 func (s *socket) destroy() {
 	s.destroyOnce.Do(func() {
-		// Cancel context to signal loops to stop
-		s.cancel()
-
 		// Close connection and update state
 		s.mu.Lock()
 		s.state = socketStateDestroyed
@@ -207,5 +252,14 @@ func (s *socket) destroy() {
 
 		// Fire close event
 		s.fire("close")
+
+		// Wait briefly for the close event goroutine to queue the callback
+		// before cancelling the context. This ensures the event loop processes
+		// the close event before shutting down. Without this, there's a race
+		// where cancel() stops the event loop before fire() can queue the event.
+		time.Sleep(1 * time.Millisecond)
+
+		// Cancel context to signal loops to stop
+		s.cancel()
 	})
 }

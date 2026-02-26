@@ -138,6 +138,40 @@ Demonstrates k6 load testing with TCP sockets, including multiple VUs, threshold
 - Performance validation
 - Load testing patterns
 
+### [tls.js](tls.js)
+**TLS/SSL secure connections**
+
+Shows how to establish encrypted TCP connections using TLS/SSL.
+
+**Key concepts:**
+- TLS encryption
+- Secure connections
+- HTTPS-like protocols
+- k6 TLS configuration
+- Certificate handling
+
+### [tls_async.js](tls_async.js)
+**TLS with async/await**
+
+Demonstrates secure TLS connections using async/await pattern for better flow control.
+
+**Key concepts:**
+- TLS + async operations
+- Promise-based TLS handshake
+- Secure data exchange
+- Connection lifecycle with TLS
+
+### [tls_smtp.js](tls_smtp.js)
+**SMTP over TLS example**
+
+Shows how to connect to secure mail servers using TLS (SMTPS).
+
+**Key concepts:**
+- Protocol-specific TLS usage
+- SMTP with implicit TLS
+- Real-world TLS application
+- Protocol handshakes
+
 ### [basic.js](basic.js)
 **Minimal example**
 
