@@ -4,16 +4,34 @@
  * This extension provides TCP socket functionality for k6 performance testing scripts,
  * offering both synchronous and asynchronous APIs for network communication.
  *
+ * Supports event-driven programming with lifecycle events (connect, data, close, error, timeout),
+ * TLS/SSL encryption, binary data handling, and comprehensive metrics collection.
+ *
  * @module k6/x/tcp
  * @example
  * ```typescript
  * import { Socket } from 'k6/x/tcp';
  *
- * const socket = new Socket();
- * socket.connect(8080, 'example.com');
- * socket.write('Hello, server!', {
- *   tags: { message_type: 'greeting' }
- * });
+ * export default function () {
+ *   const socket = new Socket();
+ *
+ *   socket.on('connect', () => {
+ *     console.log('Connected!');
+ *     socket.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n');
+ *   });
+ *
+ *   socket.on('data', (data) => {
+ *     const response = String.fromCharCode.apply(null, new Uint8Array(data));
+ *     console.log('Received:', response.substring(0, 100));
+ *     socket.destroy();
+ *   });
+ *
+ *   socket.on('close', () => {
+ *     console.log('Connection closed');
+ *   });
+ *
+ *   socket.connect(80, 'example.com');
+ * }
  * ```
  */
 declare module "k6/x/tcp" {
@@ -37,7 +55,12 @@ declare module "k6/x/tcp" {
 
   /**
    * Represents the current state of a TCP socket connection.
-   * These states correspond to the socket lifecycle from creation to destruction.
+   * 
+   * Socket lifecycle transitions:
+   * - `disconnected` → Initial state after construction
+   * - `opening` → During connection establishment (after connect() called)
+   * - `open` → Successfully connected and ready for I/O
+   * - `destroyed` → Terminal state, socket cannot be reused
    */
   export type SocketState =
     | 'opening'       // Socket is in the process of establishing a connection
@@ -86,11 +109,26 @@ declare module "k6/x/tcp" {
      * Enable TLS/SSL encryption for this connection.
      * 
      * When enabled, the socket will perform a TLS handshake after establishing
-     * the TCP connection. TLS configuration (certificates, verification, etc.)
-     * is controlled by k6's standard TLS settings.
+     * the TCP connection. TLS configuration (certificates, verification, cipher
+     * suites, etc.) is controlled by k6's standard TLS settings.
+     * 
+     * Common use cases:
+     * - Secure database connections (PostgreSQL, MySQL with TLS)
+     * - HTTPS requests over raw TCP
+     * - SMTPS, IMAPS mail protocols
+     * - Custom secure protocols
      * 
      * @see https://grafana.com/docs/k6/latest/using-k6/protocols/ssl-tls/
      * @default false
+     * @example
+     * ```typescript
+     * // Connect to HTTPS port with TLS
+     * socket.connect({
+     *   port: 443,
+     *   host: 'api.example.com',
+     *   tls: true
+     * });
+     * ```
      */
     tls?: boolean;
     /**
@@ -109,18 +147,31 @@ declare module "k6/x/tcp" {
    *
    * @example
    * ```typescript
-   * // Write with encoding and tags
+   * // Write base64-encoded data
    * socket.write('SGVsbG8gV29ybGQ=', {
    *   encoding: 'base64',
    *   tags: { operation: 'send-auth-token' }
+   * });
+   * 
+   * // Write hex-encoded binary data
+   * socket.write('48656c6c6f', {
+   *   encoding: 'hex',
+   *   tags: { data_type: 'binary' }
    * });
    * ```
    */
   export interface WriteOptions {
     /**
      * The encoding to use when data is a string.
-     * Common encodings include 'utf8', 'ascii', 'base64', 'hex'.
-     * Defaults to 'utf8' if not specified.
+     * 
+     * Supported encodings:
+     * - `'utf8'` (default): Standard UTF-8 text encoding
+     * - `'ascii'`: 7-bit ASCII encoding
+     * - `'base64'`: Base64-encoded data
+     * - `'hex'`: Hexadecimal string representation
+     * - And other encodings supported by Go's encoding package
+     * 
+     * When writing an ArrayBuffer, this option is ignored.
      */
     encoding?: string;
     /**
@@ -153,7 +204,7 @@ declare module "k6/x/tcp" {
    * });
    *
    * socket.on('data', (data) => {
-   *   console.log('Received:', new TextDecoder().decode(data));
+   *   console.log('Received:', String.fromCharCode.apply(null, new Uint8Array(data)));
    * });
    *
    * socket.connect(8080, 'example.com');
@@ -165,43 +216,87 @@ declare module "k6/x/tcp" {
      *
      * Provides detailed information about the socket's lifecycle state,
      * similar to Node.js net.Socket readyState.
+     * 
+     * Read this property to check the connection status before performing
+     * operations or for debugging connection issues.
      *
      * @example
      * ```typescript
      * console.log('Socket state:', socket.ready_state);
-     * // Output: 'disconnected', 'opening', 'open', etc.
+     * // Output: 'disconnected', 'opening', 'open', or 'destroyed'
+     * 
+     * // Check before writing
+     * if (socket.ready_state === 'open') {
+     *   socket.write('Hello!');
+     * }
      * ```
      */
     ready_state: SocketState;
 
     /**
-     * The string representation of the local IP address the remote client
-     * is connecting on.
+     * The local IP address used for this connection.
+     * 
+     * Available after the socket is connected. Useful for debugging
+     * network routing or when testing from hosts with multiple interfaces.
+     * 
+     * @example
+     * ```typescript
+     * socket.on('connect', () => {
+     *   console.log(`Connected from ${socket.local_ip}:${socket.local_port}`);
+     * });
+     * ```
      */
     local_ip?: string;
 
     /**
-     * The numeric representation of the local port.
+     * The local port number used for this connection.
+     * 
+     * Available after the socket is connected. The OS typically assigns
+     * an ephemeral port from the available port range.
      */
     local_port?: number;
 
     /**
-     * The string representation of the remote IP address.
+     * The remote IP address of the connected server.
+     * 
+     * Available after DNS resolution completes during connection.
+     * This shows the actual IP address even if you connected using a hostname.
      */
     remote_ip?: string;
 
     /**
-     * The numeric representation of the remote port.
+     * The remote port number of the connected server.
+     * 
+     * This is the port you specified in the connect() call.
      */
     remote_port?: number;
 
     /**
-     * The number of bytes sent.
+     * Total number of bytes successfully sent through this socket.
+     * 
+     * Increments with each write() operation. Useful for tracking
+     * data transfer volumes in metrics and debugging.
+     * 
+     * @example
+     * ```typescript
+     * socket.write('Hello');
+     * console.log(`Sent ${socket.bytes_written} bytes total`);
+     * ```
      */
     bytes_written: number;
 
     /**
-     * The number of bytes received.
+     * Total number of bytes received through this socket.
+     * 
+     * Increments with each 'data' event. Useful for tracking
+     * received data volumes and bandwidth usage.
+     * 
+     * @example
+     * ```typescript
+     * socket.on('data', (data) => {
+     *   console.log(`Received ${data.byteLength} bytes (${socket.bytes_read} total)`);
+     * });
+     * ```
      */
     bytes_read: number;
 
@@ -280,31 +375,46 @@ declare module "k6/x/tcp" {
     connect(options: ConnectOptions): this;
 
     /**
-     * Asynchronously initiate a connection on a given socket.
-     * Returns a Promise that resolves when the connection is established.
-     * @param port The port number to connect to
-     * @param host The host to connect to. Defaults to 'localhost'
+     * Asynchronously establishes a TCP connection to the specified host and port.
+     * 
+     * Returns a Promise that resolves when the connection is established,
+     * or rejects on connection failure. This is useful for sequential operations
+     * where you need to ensure the connection is ready before proceeding.
+     * 
+     * @param port The destination port number (1-65535)
+     * @param host The destination hostname or IP address. Defaults to 'localhost'
      * @returns A Promise that resolves when connected successfully
      * @example
      * ```typescript
-     * await socket.connectAsync(8080, 'example.com');
-     * console.log('Connected to server');
+     * try {
+     *   await socket.connectAsync(8080, 'example.com');
+     *   console.log('Connected to server');
+     *   await socket.writeAsync('Hello!');
+     * } catch (error) {
+     *   console.error('Connection failed:', error);
+     * }
      * ```
      */
     connectAsync(port: number, host?: string): Promise<void>;
 
     /**
-     * Asynchronously initiate a connection on a given socket with options.
-     * Returns a Promise that resolves when the connection is established.
-     * @param options Connection options including port, host, and other settings
+     * Asynchronously establishes a TCP connection using detailed options.
+     * 
+     * Returns a Promise that resolves when the connection is established,
+     * or rejects on connection failure. Useful for async/await workflows.
+     * 
+     * @param options Connection options including port, host, TLS, and tags
      * @returns A Promise that resolves when connected successfully
      * @example
      * ```typescript
+     * // Connect with TLS
      * await socket.connectAsync({
-     *   port: 8080,
-     *   host: 'example.com'
+     *   port: 443,
+     *   host: 'secure.example.com',
+     *   tls: true,
+     *   tags: { protocol: 'https' }
      * });
-     * console.log('Connected to server');
+     * console.log('Secure connection established');
      * ```
      */
     connectAsync(options: ConnectOptions): Promise<void>;
@@ -359,9 +469,29 @@ declare module "k6/x/tcp" {
     writeAsync(data: string | ArrayBuffer, options?: WriteOptions): Promise<void>;
 
     /**
-     * Destroys the socket. Once a socket is destroyed, no further communication is possible.
-     * @param error Optional error to emit with `error` event
+     * Destroys the socket and closes the connection.
+     * 
+     * Once destroyed, the socket cannot be reused. All pending operations will
+     * be terminated and a 'close' event will be emitted.
+     * 
+     * If an error is provided, an 'error' event will be emitted before closing.
+     * 
+     * @param error Optional error to emit before closing the socket
      * @returns The socket itself for method chaining
+     * @example
+     * ```typescript
+     * // Clean shutdown
+     * socket.destroy();
+     * 
+     * // Destroy with error
+     * socket.destroy(new Error('Connection timeout'));
+     * 
+     * // Common pattern: destroy after data received
+     * socket.on('data', (data) => {
+     *   processData(data);
+     *   socket.destroy();
+     * });
+     * ```
      */
     destroy(error?: Error): this;
 
@@ -430,7 +560,7 @@ declare module "k6/x/tcp" {
      * @example
      * ```typescript
      * socket.on('data', (data) => {
-     *   const text = new TextDecoder().decode(data);
+     *   const text = String.fromCharCode.apply(null, new Uint8Array(data));
      *   console.log('Received:', text);
      *
      *   // Or handle binary data directly
@@ -447,25 +577,33 @@ declare module "k6/x/tcp" {
      * The 'close' event is emitted when the socket connection is fully closed
      * by either the local or remote endpoint. This is the final event in the
      * socket lifecycle.
+     * 
+     * This event is guaranteed to be emitted exactly once per socket, making it
+     * ideal for cleanup operations and resolving promises in async patterns.
      *
      * **Important:** Only one listener is supported per event type.
      * Calling this method multiple times will replace the previously set listener.
      *
      * @param event The event name 'close'
-     * @param listener Callback function invoked when the socket closes, receives a boolean indicating if an error occurred
+     * @param listener Callback function invoked when the socket closes
      * @returns The socket instance for method chaining
      * @example
      * ```typescript
-     * socket.on('close', (hadError) => {
-     *   if (hadError) {
-     *     console.log('Socket closed due to an error');
-     *   } else {
-     *     console.log('Socket closed normally');
-     *   }
+     * // Basic usage
+     * socket.on('close', () => {
+     *   console.log('Connection closed');
      * });
+     * 
+     * // Async pattern with Promise
+     * const closePromise = new Promise((resolve) => {
+     *   socket.on('close', resolve);
+     * });
+     * 
+     * socket.connect(8080, 'example.com');
+     * await closePromise; // Wait for connection to close
      * ```
      */
-    on(event: 'close', listener: (had_error: boolean) => void): this;
+    on(event: 'close', listener: () => void): this;
 
     /**
      * Registers an event listener for the 'error' event.

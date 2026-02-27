@@ -101,7 +101,7 @@ Shows how to send and receive binary data using ArrayBuffer and Uint8Array.
 - ArrayBuffer usage
 - Binary protocol headers
 - Byte manipulation
-- TextEncoder/TextDecoder
+- String.fromCharCode for binary-to-text conversion
 
 ### [multiple.js](multiple.js)
 **Concurrent connections**

@@ -33,7 +33,7 @@ export default function () {
             const version = bytes[0];
             const length = bytes[1];
             const payload = bytes.slice(2);
-            const text = new TextDecoder().decode(payload);
+            const text = String.fromCharCode.apply(null, payload);
 
             console.log(`Version: 0x${version.toString(16)}, Length: ${length}`);
             console.log(`Payload: ${text}`);
