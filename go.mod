@@ -5,7 +5,7 @@ go 1.25
 require (
 	github.com/grafana/sobek v0.0.0-20260121195222-d8d9202018c5
 	github.com/mstoykov/k6-taskqueue-lib v0.1.3
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 	go.k6.io/k6 v1.6.1
 )
