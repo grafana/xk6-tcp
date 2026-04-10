@@ -549,7 +549,7 @@ declare module "k6/x/tcp" {
      * Registers an event listener for the 'data' event.
      *
      * The 'data' event is emitted when data is received from the remote endpoint.
-     * The data is provided as an ArrayBuffer for efficient binary data handling.
+     * The data is provided as an Uint8Array for efficient binary data handling.
      *
      * **Important:** Only one listener is supported per event type.
      * Calling this method multiple times will replace the previously set listener.
@@ -560,16 +560,15 @@ declare module "k6/x/tcp" {
      * @example
      * ```typescript
      * socket.on('data', (data) => {
-     *   const text = String.fromCharCode.apply(null, new Uint8Array(data));
+     *   const text = String.fromCharCode.apply(null, data);
      *   console.log('Received:', text);
      *
      *   // Or handle binary data directly
-     *   const bytes = new Uint8Array(data);
-     *   console.log('Binary data:', bytes);
+     *   console.log('Binary data:', data);
      * });
      * ```
      */
-    on(event: 'data', listener: (data: ArrayBuffer) => void): this;
+    on(event: 'data', listener: (data: Uint8Array) => void): this;
 
     /**
      * Registers an event listener for the 'close' event.
