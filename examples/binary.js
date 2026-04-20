@@ -13,7 +13,7 @@ export default function () {
         // Example: Send binary protocol header
         // Format: [0x01, length, ...data]
         const message = "Binary data";
-        const messageBytes = new TextEncoder().encode(message);
+        const messageBytes = Array.from(message).map(c => c.charCodeAt(0));
 
         const packet = new Uint8Array(2 + messageBytes.length);
         packet[0] = 0x01; // Protocol version

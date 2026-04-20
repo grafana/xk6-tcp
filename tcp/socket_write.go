@@ -56,13 +56,13 @@ func (s *socket) writeAsync(data sobek.Value, opts *writeOptions) (*sobek.Promis
 }
 
 func (s *socket) writePrepare(input sobek.Value, opts *writeOptions) ([]byte, *writeOptions, error) {
-	data, err := stringOrArrayBuffer(input, s.vu.Runtime())
-	if err != nil {
-		return nil, nil, err
-	}
-
 	if opts == nil {
 		opts = &writeOptions{}
+	}
+
+	data, err := stringOrArrayBuffer(input, s.vu.Runtime())
+	if err != nil {
+		return nil, opts, err
 	}
 
 	return data, opts, nil
@@ -136,6 +136,15 @@ func stringOrArrayBuffer(input sobek.Value, runtime *sobek.Runtime) ([]byte, err
 		if err := runtime.ExportTo(input, &data); err != nil {
 			return nil, err
 		}
+
+	case reflect.TypeFor[sobek.ArrayBuffer]():
+		var ab sobek.ArrayBuffer
+
+		if err := runtime.ExportTo(input, &ab); err != nil {
+			return nil, err
+		}
+
+		data = ab.Bytes()
 
 	default:
 		return nil, fmt.Errorf("%w: String or ArrayBuffer expected", errInvalidType)
