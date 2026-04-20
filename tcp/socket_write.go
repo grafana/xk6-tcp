@@ -56,13 +56,13 @@ func (s *socket) writeAsync(data sobek.Value, opts *writeOptions) (*sobek.Promis
 }
 
 func (s *socket) writePrepare(input sobek.Value, opts *writeOptions) ([]byte, *writeOptions, error) {
-	data, err := stringOrArrayBuffer(input, s.vu.Runtime())
-	if err != nil {
-		return nil, nil, err
-	}
-
 	if opts == nil {
 		opts = &writeOptions{}
+	}
+
+	data, err := stringOrArrayBuffer(input, s.vu.Runtime())
+	if err != nil {
+		return nil, opts, err
 	}
 
 	return data, opts, nil
