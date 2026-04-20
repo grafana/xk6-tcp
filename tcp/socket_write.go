@@ -137,6 +137,15 @@ func stringOrArrayBuffer(input sobek.Value, runtime *sobek.Runtime) ([]byte, err
 			return nil, err
 		}
 
+	case reflect.TypeFor[sobek.ArrayBuffer]():
+		var ab sobek.ArrayBuffer
+
+		if err := runtime.ExportTo(input, &ab); err != nil {
+			return nil, err
+		}
+
+		data = ab.Bytes()
+
 	default:
 		return nil, fmt.Errorf("%w: String or ArrayBuffer expected", errInvalidType)
 	}
