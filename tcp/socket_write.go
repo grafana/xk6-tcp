@@ -23,17 +23,25 @@ type writeOptions struct {
 	Tags     map[string]string
 }
 
-func (s *socket) write(data sobek.Value, opts *writeOptions) error {
+func (s *socket) write(data sobek.Value, opts *writeOptions) (bool, error) {
 	dataBytes, opts, err := s.writePrepare(data, opts)
 	if err != nil {
 		if err := s.handleError(err, "write", addToTagSet(s.currentTags(), opts.Tags)); err != nil {
-			return err
+			return false, err
 		}
 
-		return nil
+		return false, nil
 	}
 
-	return s.writeExecute(dataBytes, opts)
+	if err := s.writeExecute(dataBytes, opts); err != nil {
+		if err := s.handleError(err, "write", addToTagSet(s.currentTags(), opts.Tags)); err != nil {
+			return false, err
+		}
+
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (s *socket) writeAsync(data sobek.Value, opts *writeOptions) (*sobek.Promise, error) {

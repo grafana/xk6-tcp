@@ -235,6 +235,18 @@ func (s *socket) wrapTLS(conn net.Conn) (*tls.Conn, error) {
 	return nil, errNoTLSConfig
 }
 
+// destroyWithError is the JS-facing destroy. If an error value is provided,
+// the error event is fired (best-effort) before the socket is destroyed.
+func (s *socket) destroyWithError(errVal sobek.Value) *sobek.Object {
+	if errVal != nil && !sobek.IsUndefined(errVal) && !sobek.IsNull(errVal) {
+		s.fire("error", errVal)
+	}
+
+	s.destroy()
+
+	return s.this
+}
+
 // destroy closes the connection and cleans up resources.
 // Safe to call multiple times - cleanup happens exactly once.
 func (s *socket) destroy() {

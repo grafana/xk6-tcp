@@ -104,7 +104,7 @@ func (m *module) socket(call sobek.ConstructorCall) *sobek.Object {
 	must(s.this.Set("connectAsync", toValue(s.connectAsync)))
 	must(s.this.Set("write", toValue(s.write)))
 	must(s.this.Set("writeAsync", toValue(s.writeAsync)))
-	must(s.this.Set("destroy", toValue(s.destroy)))
+	must(s.this.Set("destroy", toValue(s.destroyWithError)))
 	must(s.this.Set("setTimeout", toValue(s.setTimeout)))
 	must(s.this.Set("on", toValue(s.on)))
 

@@ -15,11 +15,11 @@ var events = map[string]struct{}{ //nolint:gochecknoglobals
 	"timeout": {},
 }
 
-func (s *socket) on(event string, handler sobek.Callable) {
+func (s *socket) on(event string, handler sobek.Callable) *sobek.Object {
 	if _, ok := events[event]; !ok {
 		s.log.WithField("event", event).Warn("Unknown event type")
 
-		return
+		return s.this
 	}
 
 	if _, ok := s.handlers.Load(event); ok {
@@ -29,6 +29,8 @@ func (s *socket) on(event string, handler sobek.Callable) {
 	s.log.WithField("event", event).Debug("Event handler registered")
 
 	s.handlers.Store(event, handler)
+
+	return s.this
 }
 
 // fire queues an event to be fired in the VU's event loop.

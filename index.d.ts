@@ -101,8 +101,8 @@ declare module "k6/x/tcp" {
    * ```
    */
   export interface ConnectOptions {
-    /** The destination port number (1-65535) */
-    port: number;
+    /** The destination port number or string (1-65535) */
+    port: number | string;
     /** The destination hostname or IP address. Defaults to 'localhost' */
     host?: string;
     /**
@@ -353,7 +353,7 @@ declare module "k6/x/tcp" {
      * socket.connect(8080, 'api.example.com');
      * ```
      */
-    connect(port: number, host?: string): this;
+    connect(port: number | string, host?: string): this;
 
     /**
      * Initiates a TCP connection using detailed connection options.
@@ -396,7 +396,7 @@ declare module "k6/x/tcp" {
      * }
      * ```
      */
-    connectAsync(port: number, host?: string): Promise<void>;
+    connectAsync(port: number | string, host?: string): Promise<void>;
 
     /**
      * Asynchronously establishes a TCP connection using detailed options.
