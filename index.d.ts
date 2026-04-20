@@ -165,12 +165,13 @@ declare module "k6/x/tcp" {
      * The encoding to use when data is a string.
      * 
      * Supported encodings:
-     * - `'utf8'` (default): Standard UTF-8 text encoding
-     * - `'ascii'`: 7-bit ASCII encoding
-     * - `'base64'`: Base64-encoded data
-     * - `'hex'`: Hexadecimal string representation
-     * - And other encodings supported by Go's encoding package
-     * 
+     * - `'utf8'` / `'utf-8'` (default): UTF-8 text encoding
+     * - `'ascii'`: raw byte conversion (alias for utf8 for write operations)
+     * - `'base64'`: Base64-encoded string decoded to bytes before sending
+     * - `'hex'`: Hexadecimal string decoded to bytes before sending
+     *
+     * Any other value is rejected with an error.
+     *
      * When writing an ArrayBuffer, this option is ignored.
      */
     encoding?: string;

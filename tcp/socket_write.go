@@ -1,9 +1,12 @@
 package tcp
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"sync/atomic"
 
 	"github.com/grafana/sobek"
@@ -36,7 +39,16 @@ func (s *socket) write(data sobek.Value, opts *writeOptions) error {
 func (s *socket) writeAsync(data sobek.Value, opts *writeOptions) (*sobek.Promise, error) {
 	dataBytes, opts, err := s.writePrepare(data, opts)
 	if err != nil {
-		return nil, err
+		promise, _, reject := promises.New(s.vu)
+
+		tcpErr := s.handleError(err, "write", addToTagSet(s.currentTags(), opts.Tags))
+		if tcpErr == nil {
+			tcpErr = newTCPError(err, "write")
+		}
+
+		reject(tcpErr)
+
+		return promise, nil
 	}
 
 	promise, resolve, reject := promises.New(s.vu)
@@ -44,7 +56,12 @@ func (s *socket) writeAsync(data sobek.Value, opts *writeOptions) (*sobek.Promis
 	go func() {
 		err := s.writeExecute(dataBytes, opts)
 		if err != nil {
-			reject(err)
+			tcpErr := s.handleError(err, "write", addToTagSet(s.currentTags(), opts.Tags))
+			if tcpErr == nil {
+				tcpErr = newTCPError(err, "write")
+			}
+
+			reject(tcpErr)
 
 			return
 		}
@@ -60,7 +77,7 @@ func (s *socket) writePrepare(input sobek.Value, opts *writeOptions) ([]byte, *w
 		opts = &writeOptions{}
 	}
 
-	data, err := stringOrArrayBuffer(input, s.vu.Runtime())
+	data, err := stringOrArrayBuffer(input, opts.Encoding, s.vu.Runtime())
 	if err != nil {
 		return nil, opts, err
 	}
@@ -119,9 +136,7 @@ func (s *socket) writeExecute(data []byte, opts *writeOptions) error {
 	return result
 }
 
-func stringOrArrayBuffer(input sobek.Value, runtime *sobek.Runtime) ([]byte, error) {
-	var data []byte
-
+func stringOrArrayBuffer(input sobek.Value, encoding string, runtime *sobek.Runtime) ([]byte, error) {
 	switch input.ExportType() {
 	case reflect.TypeFor[string]():
 		var str string
@@ -130,12 +145,16 @@ func stringOrArrayBuffer(input sobek.Value, runtime *sobek.Runtime) ([]byte, err
 			return nil, err
 		}
 
-		data = []byte(str)
+		return decodeString(str, encoding)
 
 	case reflect.TypeFor[[]byte]():
+		var data []byte
+
 		if err := runtime.ExportTo(input, &data); err != nil {
 			return nil, err
 		}
+
+		return data, nil
 
 	case reflect.TypeFor[sobek.ArrayBuffer]():
 		var ab sobek.ArrayBuffer
@@ -144,11 +163,24 @@ func stringOrArrayBuffer(input sobek.Value, runtime *sobek.Runtime) ([]byte, err
 			return nil, err
 		}
 
-		data = ab.Bytes()
+		return ab.Bytes(), nil
 
 	default:
 		return nil, fmt.Errorf("%w: String or ArrayBuffer expected", errInvalidType)
 	}
+}
 
-	return data, nil
+func decodeString(s, encoding string) ([]byte, error) {
+	switch strings.ToLower(encoding) {
+	case "", "utf8", "utf-8":
+		return []byte(s), nil
+	case "ascii":
+		return []byte(s), nil
+	case "base64":
+		return base64.StdEncoding.DecodeString(s)
+	case "hex":
+		return hex.DecodeString(s)
+	default:
+		return nil, fmt.Errorf("unsupported encoding %q", encoding)
+	}
 }
