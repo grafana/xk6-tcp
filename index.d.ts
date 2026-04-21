@@ -340,8 +340,11 @@ declare module "k6/x/tcp" {
     /**
      * Initiates a TCP connection to the specified host and port.
      *
-     * This method is non-blocking and returns immediately. Listen for the 'connect'
-     * event to know when the connection is established, or 'error' for failures.
+     * Blocks until the connection is established or an error occurs. On success,
+     * `socket.connected` is true when the call returns. The 'connect' event fires
+     * asynchronously in the event loop. On failure, fires the 'error' event if a
+     * handler is registered, otherwise throws. Use {@link connectAsync} for a
+     * Promise-based alternative.
      *
      * @param port The destination port number (1-65535)
      * @param host The destination hostname or IP address (defaults to 'localhost')
@@ -358,8 +361,11 @@ declare module "k6/x/tcp" {
     /**
      * Initiates a TCP connection using detailed connection options.
      *
-     * This method is non-blocking and returns immediately. Listen for the 'connect'
-     * event to know when the connection is established, or 'error' for failures.
+     * Blocks until the connection is established or an error occurs. On success,
+     * `socket.connected` is true when the call returns. The 'connect' event fires
+     * asynchronously in the event loop. On failure, fires the 'error' event if a
+     * handler is registered, otherwise throws. Use {@link connectAsync} for a
+     * Promise-based alternative.
      *
      * @param options Comprehensive connection configuration
      * @returns The socket instance for method chaining

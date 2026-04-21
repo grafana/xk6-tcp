@@ -79,7 +79,7 @@ TLS configuration (certificates, verification, cipher suites, etc.) is handled b
 - Message queues with TLS (Kafka, RabbitMQ)
 - Custom secure protocols
 
-See [examples/tls.js](./examples/tls.js), [examples/tls_async.js](./examples/tls_async.js), and [examples/tls_smtp.js](./examples/tls_smtp.js) for complete examples.
+See [examples/tls.js](./examples/tls.js) and [examples/tls_async.js](./examples/tls_async.js) for complete examples.
 
 ## Event-Driven Usage
 
@@ -89,7 +89,7 @@ Register event handlers for connection lifecycle and data events using the `.on(
 |-------------|------------------------------------------------------------------
 | `connect`   | Triggered when the socket successfully establishes a connection to the remote server
 | `data`      | Triggered when data is received from the remote endpoint
-| `close`     | Triggered when the socket connection is fully closed (receives `hadError` boolean)
+| `close`     | Triggered when the socket connection is fully closed
 | `error`     | Triggered when a socket error occurs (connection failures, network issues, etc.)
 | `timeout`   | Triggered when the socket times out due to inactivity (see `setTimeout()`)
 
@@ -110,8 +110,8 @@ const socket = new Socket(options);
 
 | Method | Description
 |--------|-------------
-| `connect(port, host?)` | Initiates a TCP connection (non-blocking)
-| `connect(options)` | Initiates a connection with detailed options (port, host, tags)
+| `connect(port, host?)` | Initiates a TCP connection (synchronous; blocks until the attempt succeeds or fails)
+| `connect(options)` | Initiates a connection with detailed options (port, host, tags); synchronous
 | `connectAsync(port, host?)` | Async version that returns a Promise
 | `connectAsync(options)` | Async version with options
 | `write(data, options?)` | Sends data on the socket (string or ArrayBuffer)
@@ -162,11 +162,11 @@ You can pass custom `tags` in the Socket constructor, connection options, or wri
 > [!NOTE]
 > With k6's [Automatic Extension Resolution](https://grafana.com/docs/k6/latest/extensions/guides/what-are-k6-extensions/#automatic-extension-resolution), you don't need to manually build or download a custom k6 binary. Simply import the extension in your script using `import { Socket } from "k6/x/tcp"`, and k6 will automatically download and build it for you.
 
-Building a custom k6 binary with the `xk6-tcp` extension is necessary for its use. You can download pre-built k6 binaries from the [Releases](https://github.com/grafana/xk6-tcp/releases/) page.
+You can download pre-built k6 binaries from the [Releases](https://github.com/grafana/xk6-tcp/releases/) page.
 
 **Build**
 
-The [xk6](https://github.com/grafana/xk6) build tool can be used to build a k6 that will include xk6-faker extension:
+The [xk6](https://github.com/grafana/xk6) build tool can be used to build a k6 that will include xk6-tcp extension:
 
 ```bash
 $ xk6 build --with github.com/grafana/xk6-tcp@latest

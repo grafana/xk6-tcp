@@ -11,7 +11,7 @@ All examples can be run using k6 with the xk6-tcp extension:
 make build
 
 # Run examples with the built-in echo server wrapper
-./with-echo ./k6 run examples/hello.js
+./with-echo ./k6 run examples/hello.js  # see "Building with-echo" section below
 ```
 
 The `with-echo` wrapper automatically:
@@ -161,16 +161,15 @@ Demonstrates secure TLS connections using async/await pattern for better flow co
 - Secure data exchange
 - Connection lifecycle with TLS
 
-### [tls_smtp.js](tls_smtp.js)
-**SMTP over TLS example**
+### [tls_simple.js](tls_simple.js)
+**Minimal TLS example**
 
-Shows how to connect to secure mail servers using TLS (SMTPS).
+Connects to a remote host on port 443 using TLS and `connectAsync`, then closes.
+The simplest possible TLS socket usage.
 
 **Key concepts:**
-- Protocol-specific TLS usage
-- SMTP with implicit TLS
-- Real-world TLS application
-- Protocol handshakes
+- TLS connection with `connectAsync`
+- Minimal lifecycle (connect, sleep, destroy)
 
 ### [basic.js](basic.js)
 **Minimal example**
@@ -195,6 +194,8 @@ All examples support these environment variables:
 - `HTTP_ECHO_HOST` - HTTP echo server host (automatically set by with-echo)
 - `HTTP_ECHO_PORT` - HTTP echo server port (automatically set by with-echo)
 - `HTTP_ECHO_URL` - Full HTTP echo server URL (automatically set by with-echo)
+- `TLS_HOST` - TLS server hostname (default: example.com, used by tls examples)
+- `TLS_PORT` - TLS server port (default: 443, used by tls examples)
 
 ## Testing with k6 Options
 
