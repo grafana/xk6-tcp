@@ -27,6 +27,12 @@ linters:
 
     # Deprecated
     - wsl
+  exclusions:
+    rules:
+      - linters:
+          - gosec
+        # context cancellation function not called directly, but stored in a variable and called indirectly.
+        text: "G118:"
   settings:
     depguard:
       rules:
