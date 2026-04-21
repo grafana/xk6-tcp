@@ -71,7 +71,7 @@ func NewCommandRunner() (*CommandRunner, error) {
 func (cr *CommandRunner) Run(cmdName string, cmdArgs ...string) int {
 	ctx := context.Background()
 	//nolint:gosec // This helper intentionally executes the command supplied by the local caller.
-	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
+	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...) //#nosec G702,G204
 
 	// Connect stdin, stdout, stderr to preserve interactivity
 	cmd.Stdin = os.Stdin
