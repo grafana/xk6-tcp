@@ -7,25 +7,21 @@ exports.default = async () => {
   const socket = new tcp.Socket({})
 
   let connectHandlerCalled = false
-  socket.on("connect", () => {
-    assert(socket.connected, "socket should be connected after connect event")
+  const connected = new Promise((resolve) => {
+    socket.on("connect", () => {
+      assert(socket.connected, "socket should be connected after connect event")
 
-    connectHandlerCalled = true
-
-    socket.destroy()
-  })
-
-  let closeHandlerCalled = false
-  const prom = new Promise((resolve) => {
-    socket.on("close", () => {
-      closeHandlerCalled = true
+      connectHandlerCalled = true
       resolve()
     })
   })
 
-  prom.then(() => {
-    assert(connectHandlerCalled, "connect handler was not called")
-    assert(closeHandlerCalled, "close handler was not called")
+  let closeHandlerCalled = false
+  const closed = new Promise((resolve) => {
+    socket.on("close", () => {
+      closeHandlerCalled = true
+      resolve()
+    })
   })
 
   assert(!socket.connected, "socket should not be connected initially")
@@ -33,4 +29,10 @@ exports.default = async () => {
   await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
 
   assert(socket.connected, "socket should be connected after connect call")
+  await connected
+  assert(connectHandlerCalled, "connect handler was not called")
+
+  socket.destroy()
+  await closed
+  assert(closeHandlerCalled, "close handler was not called")
 }
