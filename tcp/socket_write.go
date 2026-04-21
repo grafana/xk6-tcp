@@ -14,8 +14,9 @@ import (
 )
 
 var (
-	errNoActiveConnection = errors.New("no active connection")
-	errWrite0Bytes        = errors.New("write returned 0 bytes written")
+	errNoActiveConnection  = errors.New("no active connection")
+	errUnsupportedEncoding = errors.New("unsupported encoding")
+	errWrite0Bytes         = errors.New("write returned 0 bytes written")
 )
 
 type writeOptions struct {
@@ -189,6 +190,6 @@ func decodeString(s, encoding string) ([]byte, error) {
 	case "hex":
 		return hex.DecodeString(s)
 	default:
-		return nil, fmt.Errorf("unsupported encoding %q", encoding)
+		return nil, fmt.Errorf("%w %q", errUnsupportedEncoding, encoding)
 	}
 }

@@ -41,9 +41,13 @@ type socket struct {
 
 	handlers sync.Map
 
-	vu       modules.VU
-	callChan chan func() error
-	cancel   context.CancelFunc
+	vu     modules.VU
+	cancel context.CancelFunc
+
+	dispatchMu     sync.Mutex
+	dispatchQueue  []func() error
+	dispatchWake   chan struct{}
+	dispatchClosed bool
 
 	metrics *tcpMetrics
 
@@ -74,7 +78,7 @@ func newSocket(log logrus.FieldLogger, vu modules.VU, metrics *tcpMetrics) *sock
 	s := new(socket)
 	s.log = log
 	s.vu = vu
-	s.callChan = make(chan func() error)
+	s.dispatchWake = make(chan struct{}, 1)
 
 	s.metrics = metrics
 	s.state = socketStateDisconnected

@@ -47,7 +47,7 @@ func run() int {
 
 // printUsage prints the command usage information.
 func printUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s <command> [args...]\n", os.Args[0])
+	_, _ = fmt.Fprintln(os.Stderr, "Usage: with-echo <command> [args...]")
 }
 
 // NewCommandRunner creates a new CommandRunner with embedded TCP and HTTP echo servers.
@@ -70,7 +70,8 @@ func NewCommandRunner() (*CommandRunner, error) {
 // Run executes the specified command with arguments.
 func (cr *CommandRunner) Run(cmdName string, cmdArgs ...string) int {
 	ctx := context.Background()
-	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...) //#nosec G204
+	//nolint:gosec // This helper intentionally executes the command supplied by the local caller.
+	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
 
 	// Connect stdin, stdout, stderr to preserve interactivity
 	cmd.Stdin = os.Stdin
@@ -83,7 +84,7 @@ func (cr *CommandRunner) Run(cmdName string, cmdArgs ...string) int {
 
 	// Start the command
 	if err := cmd.Start(); err != nil {
-		slog.Error("Failed to start command", "cmd", cmdName, "err", err)
+		slog.Error("Failed to start command", "err", err)
 
 		return 1
 	}

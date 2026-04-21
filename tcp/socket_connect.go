@@ -139,14 +139,13 @@ func (s *socket) connectExecute() error {
 		return err
 	}
 
-	// Release mutex before firing events and starting read goroutine
+	// Release mutex before firing events and starting read goroutine.
 	s.mu.Unlock()
 
-	// Start read goroutine
-	go s.read()
-
-	// Fire connect event
+	// Queue connect before the read goroutine can enqueue data.
 	s.fire("connect")
+
+	go s.read()
 
 	s.addCounterMetrics(s.metrics.tcpSockets, tags)
 
@@ -251,7 +250,12 @@ func (s *socket) destroyWithError(errVal sobek.Value) *sobek.Object {
 // Safe to call multiple times - cleanup happens exactly once.
 func (s *socket) destroy() {
 	s.destroyOnce.Do(func() {
-		// Close connection and update state
+		var closeCall func() error
+		if call, ok := s.eventCall(nil, "close"); ok {
+			closeCall = call
+		}
+
+		// Close connection and update state.
 		s.mu.Lock()
 		s.state = socketStateDestroyed
 		conn := s.conn
@@ -260,23 +264,16 @@ func (s *socket) destroy() {
 		tags := s.tags()
 		s.mu.Unlock()
 
-		// Close connection outside lock
+		// Close connection outside lock.
 		if conn != nil {
 			_ = conn.Close()
 
 			s.addDurationMetrics(duration, s.metrics.tcpDuration, tags)
 		}
 
-		// Fire close event
-		s.fire("close")
+		s.closeDispatch(closeCall)
 
-		// Wait briefly for the close event goroutine to queue the callback
-		// before cancelling the context. This ensures the event loop processes
-		// the close event before shutting down. Without this, there's a race
-		// where cancel() stops the event loop before fire() can queue the event.
-		time.Sleep(1 * time.Millisecond)
-
-		// Cancel context to signal loops to stop
+		// Cancel context to signal loops to stop after draining accepted events.
 		s.cancel()
 	})
 }

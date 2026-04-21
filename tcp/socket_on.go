@@ -39,19 +39,39 @@ func (s *socket) fire(event string, args ...any) bool {
 	return s.fireAndCleanup(nil, event, args...)
 }
 
-// fireAndCleanup fires an event with a cleanup callback.
-// Args are converted to sobek.Value inside the event loop to avoid race conditions.
-func (s *socket) fireAndCleanup(cleanup func(), event string, args ...any) bool {
+func (s *socket) eventCall(cleanup func(), event string, args ...any) (func() error, bool) {
 	f, ok := s.handlers.Load(event)
 	if !ok {
-		if cleanup != nil {
-			cleanup()
-		}
-
-		return false
+		return nil, false
 	}
 
 	fn, ok := f.(sobek.Callable)
+	if !ok {
+		return nil, false
+	}
+
+	return func() error {
+		if cleanup != nil {
+			defer cleanup()
+		}
+
+		s.log.WithField("event", event).Debug("Firing event handler")
+
+		sobekArgs := make([]sobek.Value, len(args))
+		for i, arg := range args {
+			sobekArgs[i] = s.vu.Runtime().ToValue(arg)
+		}
+
+		_, err := fn(sobek.Undefined(), sobekArgs...)
+
+		return err
+	}, true
+}
+
+// fireAndCleanup fires an event with a cleanup callback.
+// Args are converted to sobek.Value inside the event loop to avoid race conditions.
+func (s *socket) fireAndCleanup(cleanup func(), event string, args ...any) bool {
+	call, ok := s.eventCall(cleanup, event, args...)
 	if !ok {
 		if cleanup != nil {
 			cleanup()
@@ -62,35 +82,15 @@ func (s *socket) fireAndCleanup(cleanup func(), event string, args ...any) bool 
 
 	s.log.WithField("event", event).Debug("Queuing event handler")
 
-	// Queue the event asynchronously to prevent deadlock when firing events from within event handlers
-	go func() {
-		select {
-		case s.callChan <- func() error {
-			if cleanup != nil {
-				defer cleanup()
-			}
+	if !s.enqueueDispatch(call) {
+		s.log.WithField("event", event).Debug("Socket closed, skipping event")
 
-			s.log.WithField("event", event).Debug("Firing event handler")
-
-			// Convert raw Go values to sobek.Value in the event loop
-			sobekArgs := make([]sobek.Value, len(args))
-			for i, arg := range args {
-				sobekArgs[i] = s.vu.Runtime().ToValue(arg)
-			}
-
-			_, err := fn(sobek.Undefined(), sobekArgs...)
-
-			return err
-		}:
-
-		case <-s.vu.Context().Done():
-			s.log.WithField("event", event).Debug("Context cancelled, skipping event")
-
-			if cleanup != nil {
-				cleanup()
-			}
+		if cleanup != nil {
+			cleanup()
 		}
-	}()
+
+		return false
+	}
 
 	return true
 }
