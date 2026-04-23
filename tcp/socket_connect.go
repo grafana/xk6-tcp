@@ -29,24 +29,29 @@ func (co *connectOptions) address() string {
 }
 
 func (s *socket) connectAsync(portOrOptions sobek.Value, hostOrEmpty sobek.Value) (*sobek.Promise, error) {
-	err := s.connectPrepare(portOrOptions, hostOrEmpty)
-	if err != nil {
-		if e := s.handleError(err, "connect", s.tags()); e != nil {
-			return nil, e
+	promise, resolve, reject := promises.New(s.vu)
+
+	if err := s.connectPrepare(portOrOptions, hostOrEmpty); err != nil {
+		tcpErr := s.handleError(err, "connect", s.tags())
+		if tcpErr == nil {
+			tcpErr = newTCPError(err, "connect")
 		}
 
-		return &sobek.Promise{}, nil
-	}
+		reject(tcpErr)
 
-	promise, resolve, reject := promises.New(s.vu)
+		return promise, nil
+	}
 
 	go func() {
 		if err := s.connectExecute(); err != nil {
-			if e := s.handleError(err, "connect", s.tags()); e != nil {
-				reject(e)
-
-				return
+			tcpErr := s.handleError(err, "connect", s.tags())
+			if tcpErr == nil {
+				tcpErr = newTCPError(err, "connect")
 			}
+
+			reject(tcpErr)
+
+			return
 		}
 
 		resolve(nil)
