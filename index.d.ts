@@ -97,8 +97,8 @@ declare module "k6/x/tcp" {
    * ```
    */
   export interface ConnectOptions {
-    /** The destination port number (1-65535) */
-    port: number;
+    /** The destination port number or numeric string (1-65535) */
+    port: number | string;
     /** The destination hostname or IP address. Defaults to 'localhost' */
     host?: string;
     /**
@@ -336,7 +336,7 @@ declare module "k6/x/tcp" {
      * or rejects on connection failure. This is useful for sequential operations
      * where you need to ensure the connection is ready before proceeding.
      * 
-     * @param port The destination port number (1-65535)
+     * @param port The destination port number or numeric string (1-65535)
      * @param host The destination hostname or IP address. Defaults to 'localhost'
      * @returns A Promise that resolves when connected successfully
      * @example
@@ -350,7 +350,7 @@ declare module "k6/x/tcp" {
      * }
      * ```
      */
-    connectAsync(port: number, host?: string): Promise<void>;
+    connectAsync(port: number | string, host?: string): Promise<void>;
 
     /**
      * Asynchronously establishes a TCP connection using detailed options.
@@ -404,19 +404,11 @@ declare module "k6/x/tcp" {
      * 
      * Once destroyed, the socket cannot be reused. All pending operations will
      * be terminated and a 'close' event will be emitted.
-     * 
-     * If an error is provided, an 'error' event will be emitted before closing.
-     * 
-     * @param error Optional error to emit before closing the socket
-     * @returns The socket itself for method chaining
      * @example
      * ```typescript
      * // Clean shutdown
      * socket.destroy();
-     * 
-     * // Destroy with error
-     * socket.destroy(new Error('Connection timeout'));
-     * 
+     *
      * // Common pattern: destroy after data received
      * socket.on('data', (data) => {
      *   processData(data);
@@ -424,7 +416,7 @@ declare module "k6/x/tcp" {
      * });
      * ```
      */
-    destroy(error?: Error): this;
+    destroy(): void;
 
     /**
      * Sets the socket timeout for inactivity.
@@ -465,7 +457,6 @@ declare module "k6/x/tcp" {
      *
      * @param event The event name 'connect'
      * @param listener Callback function invoked when the connection is established
-     * @returns The socket instance for method chaining
      * @example
      * ```typescript
      * socket.on('connect', () => {
@@ -474,7 +465,7 @@ declare module "k6/x/tcp" {
      * });
      * ```
      */
-    on(event: 'connect', listener: () => void): this;
+    on(event: 'connect', listener: () => void): void;
 
     /**
      * Registers an event listener for the 'data' event.
@@ -487,7 +478,6 @@ declare module "k6/x/tcp" {
      *
      * @param event The event name 'data'
      * @param listener Callback function invoked when data is received
-     * @returns The socket instance for method chaining
      * @example
      * ```typescript
      * socket.on('data', (data) => {
@@ -499,7 +489,7 @@ declare module "k6/x/tcp" {
      * });
      * ```
      */
-    on(event: 'data', listener: (data: Uint8Array) => void): this;
+    on(event: 'data', listener: (data: Uint8Array) => void): void;
 
     /**
      * Registers an event listener for the 'close' event.
@@ -516,7 +506,6 @@ declare module "k6/x/tcp" {
      *
      * @param event The event name 'close'
      * @param listener Callback function invoked when the socket closes
-     * @returns The socket instance for method chaining
      * @example
      * ```typescript
      * // Basic usage
@@ -533,7 +522,7 @@ declare module "k6/x/tcp" {
      * await closePromise; // Wait for connection to close
      * ```
      */
-    on(event: 'close', listener: () => void): this;
+    on(event: 'close', listener: () => void): void;
 
     /**
      * Registers an event listener for the 'error' event.
@@ -547,7 +536,6 @@ declare module "k6/x/tcp" {
      *
      * @param event The event name 'error'
      * @param listener Callback function invoked when an error occurs, receives the Error object
-     * @returns The socket instance for method chaining
      * @example
      * ```typescript
      * socket.on('error', (error) => {
@@ -557,7 +545,7 @@ declare module "k6/x/tcp" {
      * });
      * ```
      */
-    on(event: 'error', listener: (error: Error) => void): this;
+    on(event: 'error', listener: (error: Error) => void): void;
 
     /**
      * Registers an event listener for the 'timeout' event.
@@ -571,7 +559,6 @@ declare module "k6/x/tcp" {
      *
      * @param event The event name 'timeout'
      * @param listener Callback function invoked when the socket times out
-     * @returns The socket instance for method chaining
      * @example
      * ```typescript
      * socket.setTimeout(30000); // Set 30-second timeout
@@ -581,6 +568,6 @@ declare module "k6/x/tcp" {
      * });
      * ```
      */
-    on(event: 'timeout', listener: () => void): this;
+    on(event: 'timeout', listener: () => void): void;
   }
 }
