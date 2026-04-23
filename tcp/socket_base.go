@@ -100,9 +100,7 @@ func (m *module) socket(call sobek.ConstructorCall) *sobek.Object {
 		must(m.vu.Runtime().ExportTo(call.Arguments[0], &s.socketOpts))
 	}
 
-	must(s.this.Set("connect", toValue(s.connect)))
 	must(s.this.Set("connectAsync", toValue(s.connectAsync)))
-	must(s.this.Set("write", toValue(s.write)))
 	must(s.this.Set("writeAsync", toValue(s.writeAsync)))
 	must(s.this.Set("destroy", toValue(s.destroy)))
 	must(s.this.Set("setTimeout", toValue(s.setTimeout)))

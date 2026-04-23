@@ -4,7 +4,7 @@ import { Socket } from "k6/x/tcp";
  * Socket options example demonstrating tags for metrics.
  * Tags are useful for organizing and filtering metrics in k6 output.
  */
-export default function () {
+export default async function () {
     // Create socket with tags for metrics
     const socket = new Socket({
         tags: {
@@ -13,16 +13,10 @@ export default function () {
             protocol: "custom"
         }
     });
-
-    socket.on("connect", () => {
-        console.log("Connected with tagged metrics");
-
-        // Write with additional tags specific to this operation
-        socket.write("GET /status", {
-            tags: {
-                operation: "health-check",
-                method: "GET"
-            }
+    const closed = new Promise((resolve) => {
+        socket.on("close", () => {
+            console.log("Connection closed");
+            resolve();
         });
     });
 
@@ -30,10 +24,6 @@ export default function () {
         const response = String.fromCharCode.apply(null, new Uint8Array(data));
         console.log("Status response:", response);
         socket.destroy();
-    });
-
-    socket.on("close", () => {
-        console.log("Connection closed");
     });
 
     socket.on("error", (err) => {
@@ -44,11 +34,20 @@ export default function () {
     const host = __ENV.TCP_ECHO_HOST || "localhost";
     const port = __ENV.TCP_ECHO_PORT || "8080";
 
-    socket.connect({
+    await socket.connectAsync({
         port: port,
         host: host,
         tags: {
             connection_type: "direct"
         }
     });
+    console.log("Connected with tagged metrics");
+
+    await socket.writeAsync("GET /status", {
+        tags: {
+            operation: "health-check",
+            method: "GET"
+        }
+    });
+    await closed;
 }

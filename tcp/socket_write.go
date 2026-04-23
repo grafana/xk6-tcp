@@ -20,19 +20,6 @@ type writeOptions struct {
 	Tags     map[string]string
 }
 
-func (s *socket) write(data sobek.Value, opts *writeOptions) error {
-	dataBytes, opts, err := s.writePrepare(data, opts)
-	if err != nil {
-		if err := s.handleError(err, "write", addToTagSet(s.currentTags(), opts.Tags)); err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	return s.writeExecute(dataBytes, opts)
-}
-
 func (s *socket) writeAsync(data sobek.Value, opts *writeOptions) (*sobek.Promise, error) {
 	dataBytes, opts, err := s.writePrepare(data, opts)
 	if err != nil {

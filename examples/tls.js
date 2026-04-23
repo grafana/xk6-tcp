@@ -13,26 +13,23 @@ export const options = {
     // insecureSkipTLSVerify: true,
 };
 
-export default function () {
+export default async function () {
     const socket = new Socket({
         tags: {
             protocol: "tls",
         },
     });
-
-    socket.on("connect", () => {
-        console.log("Secure TLS connection established");
-        socket.write("GET / HTTP/1.1\r\nHost: example.com\r\n\r\n");
+    const closed = new Promise((resolve) => {
+        socket.on("close", () => {
+            console.log("Secure connection closed");
+            resolve();
+        });
     });
 
     socket.on("data", (data) => {
         const response = String.fromCharCode.apply(null, new Uint8Array(data));
         console.log("Received encrypted response:", response.substring(0, 200));
         socket.destroy();
-    });
-
-    socket.on("close", () => {
-        console.log("Secure connection closed");
     });
 
     socket.on("error", (err) => {
@@ -43,9 +40,12 @@ export default function () {
     const host = __ENV.TLS_HOST || "example.com";
     const port = parseInt(__ENV.TLS_PORT || "443");
 
-    socket.connect({
+    await socket.connectAsync({
         port: parseInt(port),
         host: host,
         tls: true, // Enable TLS encryption
     });
+    console.log("Secure TLS connection established");
+    await socket.writeAsync("GET / HTTP/1.1\r\nHost: example.com\r\n\r\n");
+    await closed;
 }

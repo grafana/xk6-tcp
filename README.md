@@ -4,7 +4,7 @@
 
 **xk6-tcp** is a k6 extension that adds first-class support for raw TCP socket communication to your load testing and performance scripts. With this extension, you can establish TCP connections, send and receive data, and test network protocols directly from your k6 tests.
 
-The API is intentionally designed to feel familiar to users of Node.js's [`net.Socket`](https://nodejs.org/api/net.html#class-netsocket) API, with event-driven programming, both synchronous and asynchronous operations, and comprehensive lifecycle management. This provides a modern, ergonomic developer experience for TCP-based protocol testing in JavaScript.
+The API is intentionally designed to feel familiar to users of Node.js's [`net.Socket`](https://nodejs.org/api/net.html#class-netsocket) API, with event-driven programming, Promise-based operations, and comprehensive lifecycle management. This provides a modern, ergonomic developer experience for TCP-based protocol testing in JavaScript.
 
 ## Example
 
@@ -15,10 +15,11 @@ import tcp from "k6/x/tcp"
 
 export default async function () {
   const socket = new tcp.Socket()
-
-  socket.on("connect", () => {
-    console.log("Connected")
-    socket.write("Hey there\n");
+  const closePromise = new Promise((resolve) => {
+    socket.on("close", () => {
+      console.log("Connection closed")
+      resolve()
+    })
   })
 
   socket.on("data", (data) => {
@@ -28,25 +29,15 @@ export default async function () {
     socket.destroy()
   })
 
-  const prom = new Promise((resolve) => {
-    socket.on("close", () => {
-      console.log("Connection closed")
-      resolve()
-    })
-  })
-
   socket.on("error", (err) => {
-    console.log(`Socket error: ${err}`);
+    console.log(`Socket error: ${err}`)
   })
 
-  prom.then(() => {
-    console.log("data handler was not called")
-  })
+  await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+  console.log("Connected")
+  await socket.writeAsync("Hey there\n")
 
-  socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
-  console.log("after connect")
-
-  await prom
+  await closePromise
 }
 ```
 
@@ -58,12 +49,16 @@ The [examples](./examples/) directory contains comprehensive examples demonstrat
 
 **xk6-tcp** fully supports async and event-based programming. You can use async/await patterns with methods like `connectAsync()` and `writeAsync()`, as well as standard JavaScript asynchronous constructs like [setTimeout()](https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout) and [setInterval()](https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval).
 
+## Migration Note
+
+The public JavaScript API is async-first. If you were previously using `connect()` or `write()`, migrate those calls to `connectAsync()` and `writeAsync()`.
+
 ## TLS/SSL Support
 
 **xk6-tcp** supports secure TCP connections using TLS/SSL encryption. Enable TLS by setting the `tls` option when connecting:
 
 ```javascript
-socket.connect({
+await socket.connectAsync({
   port: 443,
   host: "secure.example.com",
   tls: true  // Enable TLS encryption
@@ -110,11 +105,8 @@ const socket = new Socket(options);
 
 | Method | Description
 |--------|-------------
-| `connect(port, host?)` | Initiates a TCP connection (non-blocking)
-| `connect(options)` | Initiates a connection with detailed options (port, host, tags)
 | `connectAsync(port, host?)` | Async version that returns a Promise
 | `connectAsync(options)` | Async version with options
-| `write(data, options?)` | Sends data on the socket (string or ArrayBuffer)
 | `writeAsync(data, options?)` | Async version that returns a Promise
 | `setTimeout(timeout)` | Sets inactivity timeout in milliseconds (0 to disable)
 | `destroy(error?)` | Destroys the socket and closes the connection

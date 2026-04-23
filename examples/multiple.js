@@ -13,16 +13,18 @@ export default async function () {
 
     // Create multiple connections
     for (let i = 0; i < connectionCount; i++) {
-        const socket = new Socket({
-            tags: {
-                connection_id: `conn-${i}`
-            }
-        });
-
-        const connectionPromise = new Promise((resolve, reject) => {
-            socket.on("connect", () => {
-                console.log(`Connection ${i} established`);
-                socket.write(`Hello from connection ${i}`);
+        connections.push((async () => {
+            const socket = new Socket({
+                tags: {
+                    connection_id: `conn-${i}`
+                }
+            });
+            let terminalError = null;
+            const closed = new Promise((resolve) => {
+                socket.on("close", () => {
+                    console.log(`Connection ${i} closed`);
+                    resolve();
+                });
             });
 
             socket.on("data", (data) => {
@@ -31,20 +33,20 @@ export default async function () {
                 socket.destroy();
             });
 
-            socket.on("close", () => {
-                console.log(`Connection ${i} closed`);
-                resolve();
-            });
-
             socket.on("error", (err) => {
+                terminalError = err;
                 console.error(`Connection ${i} error:`, err);
-                reject(err);
             });
 
-            socket.connect(port, host);
-        });
+            await socket.connectAsync(port, host);
+            console.log(`Connection ${i} established`);
+            await socket.writeAsync(`Hello from connection ${i}`);
+            await closed;
 
-        connections.push(connectionPromise);
+            if (terminalError) {
+                throw terminalError;
+            }
+        })());
     }
 
     // Wait for all connections to complete

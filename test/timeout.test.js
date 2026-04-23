@@ -3,7 +3,7 @@ const assert = (condition, message) => { if (!condition) { fail(message) } }
 
 const tcp = require("k6/x/tcp")
 
-exports.default = () => {
+exports.default = async () => {
     const socket = new tcp.Socket({})
 
     let timeoutHandlerCalled = false
@@ -11,12 +11,6 @@ exports.default = () => {
         timeoutHandlerCalled = true
         // User must manually destroy after timeout
         socket.destroy()
-    })
-
-    socket.on("connect", () => {
-        // Set 2-second timeout
-        socket.setTimeout(2000)
-        // Don't write anything - let it timeout
     })
 
     const prom = new Promise((resolve) => {
@@ -29,9 +23,9 @@ exports.default = () => {
         console.log(`Socket error: ${err}`)
     })
 
-    prom.then(() => {
-        assert(timeoutHandlerCalled, "timeout handler was not called")
-    })
+    await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+    socket.setTimeout(2000)
+    await prom
 
-    socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+    assert(timeoutHandlerCalled, "timeout handler was not called")
 }
