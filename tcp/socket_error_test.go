@@ -94,7 +94,7 @@ func TestStringOrArrayBufferWithString(t *testing.T) {
 	mod := newTestModuleInstance(t)
 
 	input := mod.vu.Runtime().ToValue("Hello, World!")
-	data, err := stringOrArrayBuffer(input, mod.vu.Runtime())
+	data, err := stringOrArrayBuffer(input, "", mod.vu.Runtime())
 
 	require.NoError(t, err)
 	require.Equal(t, []byte("Hello, World!"), data)
@@ -107,7 +107,7 @@ func TestStringOrArrayBufferWithBytes(t *testing.T) {
 
 	expected := []byte{0x01, 0x02, 0x03, 0x04}
 	input := mod.vu.Runtime().ToValue(expected)
-	data, err := stringOrArrayBuffer(input, mod.vu.Runtime())
+	data, err := stringOrArrayBuffer(input, "", mod.vu.Runtime())
 
 	require.NoError(t, err)
 	require.Equal(t, expected, data)
@@ -120,7 +120,7 @@ func TestStringOrArrayBufferWithInvalidType(t *testing.T) {
 
 	// Test with number
 	input := mod.vu.Runtime().ToValue(123)
-	_, err := stringOrArrayBuffer(input, mod.vu.Runtime())
+	_, err := stringOrArrayBuffer(input, "", mod.vu.Runtime())
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "String or ArrayBuffer expected")

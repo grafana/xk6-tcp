@@ -113,7 +113,7 @@ const socket = new Socket(options);
 | `on(event, handler)` | Registers an event handler
 
 **Write Options:**
-- `encoding` (optional): Encoding for string data (e.g., 'utf8', 'base64', 'hex')
+- `encoding` (optional): For string data, supports `utf8`, `utf-8`, `ascii`, `base64`, `base64url`, and `hex`; unsupported values are rejected. Ignored for `ArrayBuffer` input.
 - `tags` (optional): Key-value pairs for write-specific metrics
 
 ### Properties
