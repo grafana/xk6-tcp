@@ -1,25 +1,22 @@
 import { Socket } from "k6/x/tcp";
 
 /**
- * Basic TCP socket example demonstrating event-driven programming.
+ * Basic TCP socket example demonstrating async-first flow.
  * This example connects to a TCP server, sends a message, and receives a response.
  */
-export default function () {
+export default async function () {
     const socket = new Socket();
-
-    socket.on("connect", () => {
-        console.log("Connected to TCP server");
-        socket.write("Hello, TCP!");
+    const closed = new Promise((resolve) => {
+        socket.on("close", () => {
+            console.log("Connection closed");
+            resolve();
+        });
     });
 
     socket.on("data", (data) => {
         const response = String.fromCharCode.apply(null, new Uint8Array(data));
         console.log("Received:", response);
         socket.destroy();
-    });
-
-    socket.on("close", () => {
-        console.log("Connection closed");
     });
 
     socket.on("error", (err) => {
@@ -29,5 +26,9 @@ export default function () {
     // Connect to echo server (use with-echo wrapper to start server automatically)
     const host = __ENV.TCP_ECHO_HOST || "localhost";
     const port = __ENV.TCP_ECHO_PORT || "8080";
-    socket.connect(port, host);
+
+    await socket.connectAsync(port, host);
+    console.log("Connected to TCP server");
+    await socket.writeAsync("Hello, TCP!");
+    await closed;
 }

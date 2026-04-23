@@ -2,10 +2,11 @@ import tcp from "k6/x/tcp"
 
 export default async function () {
   const socket = new tcp.Socket()
-
-  socket.on("connect", () => {
-    console.log("Connected")
-    socket.write("Hey there\n");
+  const closePromise = new Promise((resolve) => {
+    socket.on("close", () => {
+      console.log("Connection closed")
+      resolve()
+    })
   })
 
   socket.on("data", (data) => {
@@ -15,23 +16,13 @@ export default async function () {
     socket.destroy()
   })
 
-  const prom = new Promise((resolve) => {
-    socket.on("close", () => {
-      console.log("Connection closed")
-      resolve()
-    })
-  })
-
   socket.on("error", (err) => {
-    console.log(`Socket error: ${err}`);
+    console.log(`Socket error: ${err}`)
   })
 
-  prom.then(() => {
-    console.log("data handler was not called")
-  })
+  await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+  console.log("Connected")
+  await socket.writeAsync("Hey there\n")
 
-  socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
-  console.log("after connect")
-
-  await prom
+  await closePromise
 }

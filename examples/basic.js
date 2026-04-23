@@ -4,16 +4,13 @@ import { Socket } from "k6/x/tcp";
  * Minimal TCP socket example.
  * This is the simplest possible usage - create a socket, connect, and close.
  */
-export default function () {
+export default async function () {
   const socket = new Socket();
-
-  socket.on("connect", () => {
-    console.log("Connected!");
-    socket.destroy();
-  });
-
-  socket.on("close", () => {
-    console.log("Closed!");
+  const closed = new Promise((resolve) => {
+    socket.on("close", () => {
+      console.log("Closed!");
+      resolve();
+    });
   });
 
   socket.on("error", (err) => {
@@ -22,5 +19,10 @@ export default function () {
 
   const host = __ENV.TCP_ECHO_HOST || "localhost";
   const port = __ENV.TCP_ECHO_PORT || "8080";
-  socket.connect(port, host);
+
+  await socket.connectAsync(port, host);
+  console.log("Connected!");
+  socket.destroy();
+
+  await closed;
 }

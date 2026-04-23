@@ -28,26 +28,6 @@ func (co *connectOptions) address() string {
 	return net.JoinHostPort(co.Host, strconv.Itoa(co.Port))
 }
 
-func (s *socket) connect(portOrOptions sobek.Value, hostOrEmpty sobek.Value) (*sobek.Object, error) {
-	err := s.connectPrepare(portOrOptions, hostOrEmpty)
-	if err != nil {
-		if e := s.handleError(err, "connect", s.tags()); e != nil {
-			return s.this, e
-		}
-
-		return s.this, nil
-	}
-
-	err = s.connectExecute()
-	if err != nil {
-		if e := s.handleError(err, "connect", s.tags()); e != nil {
-			return s.this, e
-		}
-	}
-
-	return s.this, nil
-}
-
 func (s *socket) connectAsync(portOrOptions sobek.Value, hostOrEmpty sobek.Value) (*sobek.Promise, error) {
 	err := s.connectPrepare(portOrOptions, hostOrEmpty)
 	if err != nil {

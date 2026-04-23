@@ -2,7 +2,7 @@
  * **TCP Protocol Extension for k6**
  *
  * This extension provides TCP socket functionality for k6 performance testing scripts,
- * offering both synchronous and asynchronous APIs for network communication.
+ * offering Promise-based APIs for network communication.
  *
  * Supports event-driven programming with lifecycle events (connect, data, close, error, timeout),
  * TLS/SSL encryption, binary data handling, and comprehensive metrics collection.
@@ -12,13 +12,8 @@
  * ```typescript
  * import { Socket } from 'k6/x/tcp';
  *
- * export default function () {
+ * export default async function () {
  *   const socket = new Socket();
- *
- *   socket.on('connect', () => {
- *     console.log('Connected!');
- *     socket.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n');
- *   });
  *
  *   socket.on('data', (data) => {
  *     const response = String.fromCharCode.apply(null, new Uint8Array(data));
@@ -30,7 +25,8 @@
  *     console.log('Connection closed');
  *   });
  *
- *   socket.connect(80, 'example.com');
+ *   await socket.connectAsync(80, 'example.com');
+ *   await socket.writeAsync('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n');
  * }
  * ```
  */
@@ -58,7 +54,7 @@ declare module "k6/x/tcp" {
    * 
    * Socket lifecycle transitions:
    * - `disconnected` → Initial state after construction
-   * - `opening` → During connection establishment (after connect() called)
+   * - `opening` → During connection establishment
    * - `open` → Successfully connected and ready for I/O
    * - `destroyed` → Terminal state, socket cannot be reused
    */
@@ -85,14 +81,14 @@ declare module "k6/x/tcp" {
    * @example
    * ```typescript
    * // Basic connection
-   * socket.connect({
+   * await socket.connectAsync({
    *   port: 8080,
    *   host: 'api.example.com',
    *   tags: { service: 'api-server' }
    * });
    * 
    * // Secure TLS connection
-   * socket.connect({
+   * await socket.connectAsync({
    *   port: 443,
    *   host: 'secure.example.com',
    *   tls: true,
@@ -123,7 +119,7 @@ declare module "k6/x/tcp" {
      * @example
      * ```typescript
      * // Connect to HTTPS port with TLS
-     * socket.connect({
+     * await socket.connectAsync({
      *   port: 443,
      *   host: 'api.example.com',
      *   tls: true
@@ -148,13 +144,13 @@ declare module "k6/x/tcp" {
    * @example
    * ```typescript
    * // Write base64-encoded data
-   * socket.write('SGVsbG8gV29ybGQ=', {
+   * await socket.writeAsync('SGVsbG8gV29ybGQ=', {
    *   encoding: 'base64',
    *   tags: { operation: 'send-auth-token' }
    * });
    * 
    * // Write hex-encoded binary data
-   * socket.write('48656c6c6f', {
+   * await socket.writeAsync('48656c6c6f', {
    *   encoding: 'hex',
    *   tags: { data_type: 'binary' }
    * });
@@ -188,7 +184,7 @@ declare module "k6/x/tcp" {
    * TCP Socket implementation for k6 performance testing.
    *
    * Provides a Node.js-compatible API for TCP socket operations, adapted for the k6 environment.
-   * Supports both synchronous and asynchronous operations with comprehensive event handling.
+   * Supports Promise-based operations with comprehensive event handling.
    *
    * @example
    * ```typescript
@@ -196,18 +192,14 @@ declare module "k6/x/tcp" {
    *
    * const socket = new Socket();
    *
-   * socket.on('connect', () => {
-   *   console.log('Connected to server');
-   *   socket.write('Hello, World!', {
-   *     tags: { message_type: 'greeting' }
-   *   });
-   * });
-   *
    * socket.on('data', (data) => {
    *   console.log('Received:', String.fromCharCode.apply(null, new Uint8Array(data)));
    * });
    *
-   * socket.connect(8080, 'example.com');
+   * await socket.connectAsync(8080, 'example.com');
+   * await socket.writeAsync('Hello, World!', {
+   *   tags: { message_type: 'greeting' }
+   * });
    * ```
    */
   export class Socket {
@@ -227,7 +219,7 @@ declare module "k6/x/tcp" {
      * 
      * // Check before writing
      * if (socket.ready_state === 'open') {
-     *   socket.write('Hello!');
+     *   await socket.writeAsync('Hello!');
      * }
      * ```
      */
@@ -267,19 +259,19 @@ declare module "k6/x/tcp" {
     /**
      * The remote port number of the connected server.
      * 
-     * This is the port you specified in the connect() call.
+     * This is the port you specified in the connection options or async connect call.
      */
     remote_port?: number;
 
     /**
      * Total number of bytes successfully sent through this socket.
      * 
-     * Increments with each write() operation. Useful for tracking
+     * Increments with each writeAsync() operation. Useful for tracking
      * data transfer volumes in metrics and debugging.
      * 
      * @example
      * ```typescript
-     * socket.write('Hello');
+     * await socket.writeAsync('Hello');
      * console.log(`Sent ${socket.bytes_written} bytes total`);
      * ```
      */
@@ -309,7 +301,7 @@ declare module "k6/x/tcp" {
      * @example
      * ```typescript
      * if (socket.connected) {
-     *   socket.write('Hello!');
+     *   await socket.writeAsync('Hello!');
      * } else {
      *   console.log('Socket not connected');
      * }
@@ -320,7 +312,7 @@ declare module "k6/x/tcp" {
     /**
      * Creates a new TCP socket instance.
      *
-     * The socket is created in a disconnected state. Use `connect()` to establish a connection.
+     * The socket is created in a disconnected state. Use `connectAsync()` to establish a connection.
      *
      * @param options Optional configuration for the socket
      * @example
@@ -335,44 +327,6 @@ declare module "k6/x/tcp" {
      * ```
      */
     constructor(options?: SocketOptions);
-
-    /**
-     * Initiates a TCP connection to the specified host and port.
-     *
-     * This method is non-blocking and returns immediately. Listen for the 'connect'
-     * event to know when the connection is established, or 'error' for failures.
-     *
-     * @param port The destination port number (1-65535)
-     * @param host The destination hostname or IP address (defaults to 'localhost')
-     * @returns The socket instance for method chaining
-     * @example
-     * ```typescript
-     * socket.on('connect', () => console.log('Connected!'));
-     * socket.on('error', (err) => console.error('Connection failed:', err));
-     * socket.connect(8080, 'api.example.com');
-     * ```
-     */
-    connect(port: number, host?: string): this;
-
-    /**
-     * Initiates a TCP connection using detailed connection options.
-     *
-     * This method is non-blocking and returns immediately. Listen for the 'connect'
-     * event to know when the connection is established, or 'error' for failures.
-     *
-     * @param options Comprehensive connection configuration
-     * @returns The socket instance for method chaining
-     * @example
-     * ```typescript
-     * socket.on('connect', () => console.log('Connected!'));
-     * socket.connect({
-     *   port: 8080,
-     *   host: 'api.example.com',
-     *   tags: { endpoint: 'api-server' }
-     * });
-     * ```
-     */
-    connect(options: ConnectOptions): this;
 
     /**
      * Asynchronously establishes a TCP connection to the specified host and port.
@@ -418,30 +372,6 @@ declare module "k6/x/tcp" {
      * ```
      */
     connectAsync(options: ConnectOptions): Promise<void>;
-
-    /**
-     * Sends data on the socket with additional options.
-     * @param data The data to write - can be a string or ArrayBuffer for binary data
-     * @param options Optional configuration options for the write operation
-     * @returns `true` if the data was flushed successfully
-     * @example
-     * ```typescript
-     * // Write with encoding
-     * socket.write('SGVsbG8gV29ybGQ=', { encoding: 'base64' });
-     *
-     * // Write with tags for metrics
-     * socket.write('Hello, server!', {
-     *   tags: { operation: 'handshake', protocol: 'custom' }
-     * });
-     *
-     * // Write with both encoding and tags
-     * socket.write('encoded-payload', {
-     *   encoding: 'hex',
-     *   tags: { data_type: 'binary', size: 'small' }
-     * });
-     * ```
-     */
-    write(data: string | ArrayBuffer, options?: WriteOptions): boolean;
 
     /**
      * Asynchronously sends data on the socket with additional options.
@@ -539,7 +469,7 @@ declare module "k6/x/tcp" {
      * ```typescript
      * socket.on('connect', () => {
      *   console.log('Connected! Ready to send data.');
-     *   socket.write('Hello, server!');
+     *   socket.writeAsync('Hello, server!').catch(console.error);
      * });
      * ```
      */
@@ -598,7 +528,7 @@ declare module "k6/x/tcp" {
      *   socket.on('close', resolve);
      * });
      * 
-     * socket.connect(8080, 'example.com');
+     * await socket.connectAsync(8080, 'example.com');
      * await closePromise; // Wait for connection to close
      * ```
      */

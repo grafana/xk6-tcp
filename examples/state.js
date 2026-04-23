@@ -4,21 +4,21 @@ import { Socket } from "k6/x/tcp";
  * Socket state inspection example.
  * Demonstrates checking socket connection state and properties.
  */
-export default function () {
+export default async function () {
     const socket = new Socket();
+    const closed = new Promise((resolve) => {
+        socket.on("close", () => {
+            console.log("Final state:", socket.ready_state);
+            console.log("Finally connected:", socket.connected);
+            console.log("Total bytes written:", socket.bytes_written);
+            console.log("Total bytes read:", socket.bytes_read);
+            resolve();
+        });
+    });
 
     // Check initial state
     console.log("Initial state:", socket.ready_state);
     console.log("Initially connected:", socket.connected);
-
-    socket.on("connect", () => {
-        console.log("State after connect:", socket.ready_state);
-        console.log("Is connected:", socket.connected);
-        console.log("Bytes written:", socket.bytes_written);
-        console.log("Bytes read:", socket.bytes_read);
-
-        socket.write("Test message");
-    });
 
     socket.on("data", (data) => {
         const response = String.fromCharCode.apply(null, new Uint8Array(data));
@@ -31,13 +31,6 @@ export default function () {
         socket.destroy();
     });
 
-    socket.on("close", () => {
-        console.log("Final state:", socket.ready_state);
-        console.log("Finally connected:", socket.connected);
-        console.log("Total bytes written:", socket.bytes_written);
-        console.log("Total bytes read:", socket.bytes_read);
-    });
-
     socket.on("error", (err) => {
         console.error("Socket error:", err);
         console.log("State on error:", socket.ready_state);
@@ -45,5 +38,12 @@ export default function () {
 
     const host = __ENV.TCP_ECHO_HOST || "localhost";
     const port = __ENV.TCP_ECHO_PORT || "8080";
-    socket.connect(port, host);
+
+    await socket.connectAsync(port, host);
+    console.log("State after connect:", socket.ready_state);
+    console.log("Is connected:", socket.connected);
+    console.log("Bytes written:", socket.bytes_written);
+    console.log("Bytes read:", socket.bytes_read);
+    await socket.writeAsync("Test message");
+    await closed;
 }

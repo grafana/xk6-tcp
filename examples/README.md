@@ -42,12 +42,12 @@ TCP_ECHO_HOST=localhost TCP_ECHO_PORT=8080 ./k6 run examples/hello.js
 ## Examples Overview
 
 ### [hello.js](hello.js)
-**Basic event-driven programming**
+**Basic async-first programming**
 
-Demonstrates the fundamental pattern of TCP communication using event handlers. Shows connect, data, close, and error events.
+Demonstrates the fundamental pattern of TCP communication using `connectAsync()`, `writeAsync()`, and socket event handlers.
 
 **Key concepts:**
-- Event-driven API
+- Async-first API
 - Basic connect/write/read pattern
 - String data handling
 
@@ -141,7 +141,7 @@ Demonstrates k6 load testing with TCP sockets, including multiple VUs, threshold
 ### [tls.js](tls.js)
 **TLS/SSL secure connections**
 
-Shows how to establish encrypted TCP connections using TLS/SSL.
+Shows how to establish encrypted TCP connections using TLS/SSL with the async API.
 
 **Key concepts:**
 - TLS encryption
