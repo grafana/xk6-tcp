@@ -60,37 +60,36 @@ func (s *socket) fireAndCleanup(cleanup func(), event string, args ...any) bool 
 
 	s.log.WithField("event", event).Debug("Queuing event handler")
 
-	// Queue the event asynchronously to prevent deadlock when firing events from within event handlers
-	go func() {
-		select {
-		case s.callChan <- func() error {
-			if cleanup != nil {
-				defer cleanup()
-			}
-
-			s.log.WithField("event", event).Debug("Firing event handler")
-
-			// Convert raw Go values to sobek.Value in the event loop
-			sobekArgs := make([]sobek.Value, len(args))
-			for i, arg := range args {
-				sobekArgs[i] = s.vu.Runtime().ToValue(arg)
-			}
-
-			_, err := fn(sobek.Undefined(), sobekArgs...)
-
-			return err
-		}:
-
-		case <-s.vu.Context().Done():
-			s.log.WithField("event", event).Debug("Context cancelled, skipping event")
-
-			if cleanup != nil {
-				cleanup()
-			}
+	// Queue synchronously so the caller's event order is preserved across goroutines.
+	select {
+	case s.callChan <- func() error {
+		if cleanup != nil {
+			defer cleanup()
 		}
-	}()
 
-	return true
+		s.log.WithField("event", event).Debug("Firing event handler")
+
+		// Convert raw Go values to sobek.Value in the event loop
+		sobekArgs := make([]sobek.Value, len(args))
+		for i, arg := range args {
+			sobekArgs[i] = s.vu.Runtime().ToValue(arg)
+		}
+
+		_, err := fn(sobek.Undefined(), sobekArgs...)
+
+		return err
+	}:
+		return true
+
+	case <-s.vu.Context().Done():
+		s.log.WithField("event", event).Debug("Context cancelled, skipping event")
+
+		if cleanup != nil {
+			cleanup()
+		}
+
+		return false
+	}
 }
 
 func (s *socket) handleError(err error, method string, ts *metrics.TagSet) error {
