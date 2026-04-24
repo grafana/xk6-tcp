@@ -74,7 +74,7 @@ TLS configuration (certificates, verification, cipher suites, etc.) is handled b
 - Message queues with TLS (Kafka, RabbitMQ)
 - Custom secure protocols
 
-See [examples/tls.js](./examples/tls.js), [examples/tls_async.js](./examples/tls_async.js), and [examples/tls_smtp.js](./examples/tls_smtp.js) for complete examples.
+See [examples/tls.js](./examples/tls.js), [examples/tls_async.js](./examples/tls_async.js), and [examples/tls_simple.js](./examples/tls_simple.js) for complete examples.
 
 ## Event-Driven Usage
 
@@ -154,11 +154,11 @@ You can pass custom `tags` in the Socket constructor, connection options, or wri
 > [!NOTE]
 > With k6's [Automatic Extension Resolution](https://grafana.com/docs/k6/latest/extensions/guides/what-are-k6-extensions/#automatic-extension-resolution), you don't need to manually build or download a custom k6 binary. Simply import the extension in your script using `import { Socket } from "k6/x/tcp"`, and k6 will automatically download and build it for you.
 
-Building a custom k6 binary with the `xk6-tcp` extension is necessary for its use. You can download pre-built k6 binaries from the [Releases](https://github.com/grafana/xk6-tcp/releases/) page.
+You can download pre-built k6 binaries from the [Releases](https://github.com/grafana/xk6-tcp/releases/) page.
 
 **Build**
 
-The [xk6](https://github.com/grafana/xk6) build tool can be used to build a k6 that will include xk6-faker extension:
+The [xk6](https://github.com/grafana/xk6) build tool can be used to build a k6 binary that includes the xk6-tcp extension:
 
 ```bash
 $ xk6 build --with github.com/grafana/xk6-tcp@latest
