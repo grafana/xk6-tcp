@@ -84,7 +84,7 @@ Register event handlers for connection lifecycle and data events using the `.on(
 |-------------|------------------------------------------------------------------
 | `connect`   | Triggered when the socket successfully establishes a connection to the remote server
 | `data`      | Triggered when data is received from the remote endpoint
-| `close`     | Triggered when the socket connection is fully closed (receives `hadError` boolean)
+| `close`     | Triggered when the socket connection is fully closed
 | `error`     | Triggered when a socket error occurs (connection failures, network issues, etc.)
 | `timeout`   | Triggered when the socket times out due to inactivity (see `setTimeout()`)
 
@@ -109,7 +109,7 @@ const socket = new Socket(options);
 | `connectAsync(options)` | Async version with options
 | `writeAsync(data, options?)` | Async version that returns a Promise
 | `setTimeout(timeout)` | Sets inactivity timeout in milliseconds (0 to disable)
-| `destroy(error?)` | Destroys the socket and closes the connection
+| `destroy()` | Destroys the socket and closes the connection
 | `on(event, handler)` | Registers an event handler
 
 **Write Options:**
