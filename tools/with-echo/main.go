@@ -70,7 +70,7 @@ func NewCommandRunner() (*CommandRunner, error) {
 // Run executes the specified command with arguments.
 func (cr *CommandRunner) Run(cmdName string, cmdArgs ...string) int {
 	ctx := context.Background()
-	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...) //#nosec G204
+	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...) //#nosec G702,G204
 
 	// Connect stdin, stdout, stderr to preserve interactivity
 	cmd.Stdin = os.Stdin
@@ -83,7 +83,7 @@ func (cr *CommandRunner) Run(cmdName string, cmdArgs ...string) int {
 
 	// Start the command
 	if err := cmd.Start(); err != nil {
-		slog.Error("Failed to start command", "cmd", cmdName, "err", err)
+		slog.Error("Failed to start command", "cmd", cmdName, "err", err) //#nosec G706
 
 		return 1
 	}

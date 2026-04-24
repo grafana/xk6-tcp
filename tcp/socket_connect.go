@@ -122,11 +122,11 @@ func (s *socket) connectExecute() error {
 	// Release mutex before firing events and starting read goroutine
 	s.mu.Unlock()
 
-	// Start read goroutine
-	go s.read()
-
-	// Fire connect event
+	// Queue connect before the read goroutine can enqueue later lifecycle events.
 	s.fire("connect")
+
+	// Start read goroutine after connect has been queued.
+	go s.read()
 
 	s.addCounterMetrics(s.metrics.tcpSockets, tags)
 
@@ -237,12 +237,6 @@ func (s *socket) destroy() {
 
 		// Fire close event
 		s.fire("close")
-
-		// Wait briefly for the close event goroutine to queue the callback
-		// before cancelling the context. This ensures the event loop processes
-		// the close event before shutting down. Without this, there's a race
-		// where cancel() stops the event loop before fire() can queue the event.
-		time.Sleep(1 * time.Millisecond)
 
 		// Cancel context to signal loops to stop
 		s.cancel()

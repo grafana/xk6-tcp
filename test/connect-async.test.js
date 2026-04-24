@@ -23,14 +23,11 @@ exports.default = async () => {
     })
   })
 
-  prom.then(() => {
-    assert(connectHandlerCalled, "connect handler was not called")
-    assert(closeHandlerCalled, "close handler was not called")
-  })
-
   assert(!socket.connected, "socket should not be connected initially")
 
   await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+  await prom
 
-  assert(socket.connected, "socket should be connected after connect call")
+  assert(connectHandlerCalled, "connect handler was not called")
+  assert(closeHandlerCalled, "close handler was not called")
 }

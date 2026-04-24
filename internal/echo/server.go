@@ -49,11 +49,11 @@ func Setup() *Server {
 
 	server, err := New()
 	if err != nil {
-		slog.Error("Error starting embedded echo server: ", "error", err)
+		panic(fmt.Errorf("failed to start embedded echo server: %w", err))
 	}
 
 	if err := server.Setenv(); err != nil {
-		slog.Error("Error setting up environment variables: ", "error", err)
+		panic(fmt.Errorf("failed to set up embedded echo server environment: %w", err))
 	}
 
 	server.Start()
