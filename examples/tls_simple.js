@@ -20,7 +20,7 @@ export default async function () {
     });
 
     // Connect to example.com on port 443 with TLS
-    await socket.connectAsync({
+    await socket.connect({
         port: 443,
         host: "example.com",
         tls: true,

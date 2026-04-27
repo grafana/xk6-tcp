@@ -25,11 +25,6 @@ setup() {
   [ $status -eq 0 ]
 }
 
-@test 'hello_async.js' {
-  run $ECHO $K6 run hello_async.js
-  [ $status -eq 0 ]
-}
-
 @test 'echo.js' {
   run $ECHO $K6 run echo.js
   [ $status -eq 0 ]

@@ -39,11 +39,11 @@ export default async function () {
     const host = __ENV.TCP_ECHO_HOST || "localhost";
     const port = __ENV.TCP_ECHO_PORT || "8080";
 
-    await socket.connectAsync(port, host);
+    await socket.connect(port, host);
     console.log("State after connect:", socket.ready_state);
     console.log("Is connected:", socket.connected);
     console.log("Bytes written:", socket.bytes_written);
     console.log("Bytes read:", socket.bytes_read);
-    await socket.writeAsync("Test message");
+    await socket.write("Test message");
     await closed;
 }

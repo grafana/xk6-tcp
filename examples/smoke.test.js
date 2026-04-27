@@ -48,8 +48,8 @@ export default async function () {
     const host = __ENV.TCP_ECHO_HOST || "localhost";
     const port = __ENV.TCP_ECHO_PORT || "8080";
 
-    await socket.connectAsync(port, host);
-    await socket.writeAsync(`Message from VU ${__VU} iteration ${__ITER}`);
+    await socket.connect(port, host);
+    await socket.write(`Message from VU ${__VU} iteration ${__ITER}`);
 
     // Wait for response
     await dataPromise;

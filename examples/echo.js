@@ -22,7 +22,7 @@ export default async function () {
 
         // Send next message or close
         if (messageIndex < messages.length) {
-            socket.writeAsync(messages[messageIndex++]).catch((err) => {
+            socket.write(messages[messageIndex++]).catch((err) => {
                 console.error("Socket error:", err);
                 socket.destroy();
             });
@@ -39,8 +39,8 @@ export default async function () {
     const host = __ENV.TCP_ECHO_HOST || "localhost";
     const port = __ENV.TCP_ECHO_PORT || "8080";
 
-    await socket.connectAsync(port, host);
+    await socket.connect(port, host);
     console.log("Connected to echo server");
-    await socket.writeAsync(messages[messageIndex++]);
+    await socket.write(messages[messageIndex++]);
     await closed;
 }

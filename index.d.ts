@@ -25,8 +25,8 @@
  *     console.log('Connection closed');
  *   });
  *
- *   await socket.connectAsync(80, 'example.com');
- *   await socket.writeAsync('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n');
+ *   await socket.connect(80, 'example.com');
+ *   await socket.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n');
  * }
  * ```
  */
@@ -81,14 +81,14 @@ declare module "k6/x/tcp" {
    * @example
    * ```typescript
    * // Basic connection
-   * await socket.connectAsync({
+   * await socket.connect({
    *   port: 8080,
    *   host: 'api.example.com',
    *   tags: { service: 'api-server' }
    * });
    * 
    * // Secure TLS connection
-   * await socket.connectAsync({
+   * await socket.connect({
    *   port: 443,
    *   host: 'secure.example.com',
    *   tls: true,
@@ -119,7 +119,7 @@ declare module "k6/x/tcp" {
      * @example
      * ```typescript
      * // Connect to HTTPS port with TLS
-     * await socket.connectAsync({
+     * await socket.connect({
      *   port: 443,
      *   host: 'api.example.com',
      *   tls: true
@@ -144,13 +144,13 @@ declare module "k6/x/tcp" {
    * @example
    * ```typescript
    * // Write base64-encoded data
-   * await socket.writeAsync('SGVsbG8gV29ybGQ=', {
+   * await socket.write('SGVsbG8gV29ybGQ=', {
    *   encoding: 'base64',
    *   tags: { operation: 'send-auth-token' }
    * });
    * 
    * // Write hex-encoded binary data
-   * await socket.writeAsync('48656c6c6f', {
+   * await socket.write('48656c6c6f', {
    *   encoding: 'hex',
    *   tags: { data_type: 'binary' }
    * });
@@ -197,8 +197,8 @@ declare module "k6/x/tcp" {
    *   console.log('Received:', String.fromCharCode.apply(null, new Uint8Array(data)));
    * });
    *
-   * await socket.connectAsync(8080, 'example.com');
-   * await socket.writeAsync('Hello, World!', {
+   * await socket.connect(8080, 'example.com');
+   * await socket.write('Hello, World!', {
    *   tags: { message_type: 'greeting' }
    * });
    * ```
@@ -220,7 +220,7 @@ declare module "k6/x/tcp" {
      * 
      * // Check before writing
      * if (socket.ready_state === 'open') {
-     *   await socket.writeAsync('Hello!');
+     *   await socket.write('Hello!');
      * }
      * ```
      */
@@ -260,19 +260,19 @@ declare module "k6/x/tcp" {
     /**
      * The remote port number of the connected server.
      * 
-     * This is the port you specified in the connection options or async connect call.
+     * This is the port you specified in the connection options or connect call.
      */
     remote_port?: number;
 
     /**
      * Total number of bytes successfully sent through this socket.
      * 
-     * Increments with each writeAsync() operation. Useful for tracking
+     * Increments with each write() operation. Useful for tracking
      * data transfer volumes in metrics and debugging.
      * 
      * @example
      * ```typescript
-     * await socket.writeAsync('Hello');
+     * await socket.write('Hello');
      * console.log(`Sent ${socket.bytes_written} bytes total`);
      * ```
      */
@@ -302,7 +302,7 @@ declare module "k6/x/tcp" {
      * @example
      * ```typescript
      * if (socket.connected) {
-     *   await socket.writeAsync('Hello!');
+     *   await socket.write('Hello!');
      * } else {
      *   console.log('Socket not connected');
      * }
@@ -313,7 +313,7 @@ declare module "k6/x/tcp" {
     /**
      * Creates a new TCP socket instance.
      *
-     * The socket is created in a disconnected state. Use `connectAsync()` to establish a connection.
+     * The socket is created in a disconnected state. Use `connect()` to establish a connection.
      *
      * @param options Optional configuration for the socket
      * @example
@@ -342,15 +342,15 @@ declare module "k6/x/tcp" {
      * @example
      * ```typescript
      * try {
-     *   await socket.connectAsync(8080, 'example.com');
+     *   await socket.connect(8080, 'example.com');
      *   console.log('Connected to server');
-     *   await socket.writeAsync('Hello!');
+     *   await socket.write('Hello!');
      * } catch (error) {
      *   console.error('Connection failed:', error);
      * }
      * ```
      */
-    connectAsync(port: number | string, host?: string): Promise<void>;
+    connect(port: number | string, host?: string): Promise<void>;
 
     /**
      * Asynchronously establishes a TCP connection using detailed options.
@@ -363,7 +363,7 @@ declare module "k6/x/tcp" {
      * @example
      * ```typescript
      * // Connect with TLS
-     * await socket.connectAsync({
+     * await socket.connect({
      *   port: 443,
      *   host: 'secure.example.com',
      *   tls: true,
@@ -372,7 +372,7 @@ declare module "k6/x/tcp" {
      * console.log('Secure connection established');
      * ```
      */
-    connectAsync(options: ConnectOptions): Promise<void>;
+    connect(options: ConnectOptions): Promise<void>;
 
     /**
      * Asynchronously sends data on the socket with additional options.
@@ -383,21 +383,21 @@ declare module "k6/x/tcp" {
      * @example
      * ```typescript
      * // Write with encoding
-     * await socket.writeAsync('SGVsbG8gV29ybGQ=', { encoding: 'base64' });
+     * await socket.write('SGVsbG8gV29ybGQ=', { encoding: 'base64' });
      *
      * // Write with tags for metrics
-     * await socket.writeAsync('Hello, server!', {
+     * await socket.write('Hello, server!', {
      *   tags: { operation: 'handshake', protocol: 'custom' }
      * });
      *
      * // Write with both encoding and tags
-     * await socket.writeAsync('encoded-payload', {
+     * await socket.write('encoded-payload', {
      *   encoding: 'hex',
      *   tags: { data_type: 'binary', size: 'small' }
      * });
      * ```
      */
-    writeAsync(data: string | ArrayBuffer, options?: WriteOptions): Promise<void>;
+    write(data: string | ArrayBuffer, options?: WriteOptions): Promise<void>;
 
     /**
      * Destroys the socket and closes the connection.
@@ -461,7 +461,7 @@ declare module "k6/x/tcp" {
      * ```typescript
      * socket.on('connect', () => {
      *   console.log('Connected! Ready to send data.');
-     *   socket.writeAsync('Hello, server!').catch(console.error);
+     *   socket.write('Hello, server!').catch(console.error);
      * });
      * ```
      */
@@ -518,7 +518,7 @@ declare module "k6/x/tcp" {
      *   socket.on('close', resolve);
      * });
      * 
-     * await socket.connectAsync(8080, 'example.com');
+     * await socket.connect(8080, 'example.com');
      * await closePromise; // Wait for connection to close
      * ```
      */

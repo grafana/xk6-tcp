@@ -38,12 +38,12 @@ exports.default = async () => {
   }
 
   await expectStringPortAccepted(
-    (socket) => socket.connectAsync("0", "127.0.0.1"),
-    "connectAsync(port: string, host)",
+    (socket) => socket.connect("0", "127.0.0.1"),
+    "connect(port: string, host)",
   )
 
   await expectStringPortAccepted(
-    (socket) => socket.connectAsync({ port: "0", host: "127.0.0.1" }),
-    "connectAsync({ port: string, host })",
+    (socket) => socket.connect({ port: "0", host: "127.0.0.1" }),
+    "connect({ port: string, host })",
   )
 }

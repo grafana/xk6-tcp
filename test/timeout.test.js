@@ -23,7 +23,7 @@ exports.default = async () => {
         console.log(`Socket error: ${err}`)
     })
 
-    await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+    await socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
     socket.setTimeout(2000)
     await prom
 

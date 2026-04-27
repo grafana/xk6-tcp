@@ -28,7 +28,7 @@ func (co *connectOptions) address() string {
 	return net.JoinHostPort(co.Host, strconv.Itoa(co.Port))
 }
 
-func (s *socket) connectAsync(portOrOptions sobek.Value, hostOrEmpty sobek.Value) (*sobek.Promise, error) {
+func (s *socket) connect(portOrOptions sobek.Value, hostOrEmpty sobek.Value) (*sobek.Promise, error) {
 	promise, resolve, reject := promises.New(s.vu)
 
 	if err := s.connectPrepare(portOrOptions, hostOrEmpty); err != nil {

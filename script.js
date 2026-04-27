@@ -20,9 +20,9 @@ export default async function () {
     console.log(`Socket error: ${err}`)
   })
 
-  await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+  await socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
   console.log("Connected")
-  await socket.writeAsync("Hey there\n")
+  await socket.write("Hey there\n")
 
   await closePromise
 }

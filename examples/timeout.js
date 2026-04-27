@@ -34,13 +34,13 @@ export default async function () {
     const host = __ENV.TCP_ECHO_HOST || "localhost";
     const port = __ENV.TCP_ECHO_PORT || "8080";
 
-    await socket.connectAsync(port, host);
+    await socket.connect(port, host);
     console.log("Connected to server");
 
     // Set a 5-second timeout for inactivity
     socket.setTimeout(5000);
     console.log("Timeout set to 5 seconds");
 
-    // Optionally send a message with await socket.writeAsync("Hello");
+    // Optionally send a message with await socket.write("Hello");
     await closed;
 }
