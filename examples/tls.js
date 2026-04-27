@@ -46,6 +46,6 @@ export default async function () {
         tls: true, // Enable TLS encryption
     });
     console.log("Secure TLS connection established");
-    await socket.writeAsync("GET / HTTP/1.1\r\nHost: example.com\r\n\r\n");
+    await socket.writeAsync(`GET / HTTP/1.1\r\nHost: ${host}\r\n\r\n`);
     await closed;
 }

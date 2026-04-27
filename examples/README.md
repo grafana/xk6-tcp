@@ -11,7 +11,7 @@ All examples can be run using k6 with the xk6-tcp extension:
 make build
 
 # Run examples with the built-in echo server wrapper
-./with-echo ./k6 run examples/hello.js
+./with-echo ./k6 run examples/hello.js  # see "Building with-echo" below
 ```
 
 The `with-echo` wrapper automatically:
@@ -161,16 +161,16 @@ Demonstrates secure TLS connections using async/await pattern for better flow co
 - Secure data exchange
 - Connection lifecycle with TLS
 
-### [tls_smtp.js](tls_smtp.js)
-**SMTP over TLS example**
+### [tls_simple.js](tls_simple.js)
+**Minimal TLS example**
 
-Shows how to connect to secure mail servers using TLS (SMTPS).
+Connects to `example.com:443` with `tls: true`, waits briefly, and then closes the socket.
+This is the smallest possible TLS connection example in the repository.
 
 **Key concepts:**
-- Protocol-specific TLS usage
-- SMTP with implicit TLS
-- Real-world TLS application
-- Protocol handshakes
+- Minimal TLS connection setup
+- `connectAsync()` with `tls: true`
+- Short connect / close lifecycle
 
 ### [basic.js](basic.js)
 **Minimal example**
@@ -188,13 +188,21 @@ go build -o ../../with-echo
 
 ## Configuration
 
-All examples support these environment variables:
+Examples use different environment variables depending on the script:
 
 - `TCP_ECHO_HOST` - Target host (default: localhost, automatically set by with-echo)
 - `TCP_ECHO_PORT` - Target port (default: 8080, automatically set by with-echo)
 - `HTTP_ECHO_HOST` - HTTP echo server host (automatically set by with-echo)
 - `HTTP_ECHO_PORT` - HTTP echo server port (automatically set by with-echo)
 - `HTTP_ECHO_URL` - Full HTTP echo server URL (automatically set by with-echo)
+- `TLS_HOST` - TLS target hostname for `tls.js` and `tls_async.js` (default: `example.com`)
+- `TLS_PORT` - TLS target port for `tls.js` and `tls_async.js` (default: `443`)
+
+Notes:
+
+- `with-echo` sets the `TCP_ECHO_*` and `HTTP_ECHO_*` variables automatically.
+- `tls.js` and `tls_async.js` read `TLS_HOST` and `TLS_PORT` if you want to target a different TLS endpoint.
+- `tls_simple.js` does not use environment variables; it always connects to `example.com:443`.
 
 ## Testing with k6 Options
 
