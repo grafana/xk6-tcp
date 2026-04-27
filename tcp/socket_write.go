@@ -29,12 +29,7 @@ func (s *socket) write(data sobek.Value, opts *writeOptions) (*sobek.Promise, er
 
 	dataBytes, opts, err := s.writePrepare(data, opts)
 	if err != nil {
-		tcpErr := s.handleError(err, "write", addToTagSet(s.currentTags(), opts.Tags))
-		if tcpErr == nil {
-			tcpErr = newTCPError(err, "write")
-		}
-
-		reject(tcpErr)
+		s.rejectWithTCPError(reject, err, "write", addToTagSet(s.currentTags(), opts.Tags))
 
 		return promise, nil
 	}

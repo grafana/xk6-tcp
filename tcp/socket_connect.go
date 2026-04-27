@@ -32,24 +32,14 @@ func (s *socket) connect(portOrOptions sobek.Value, hostOrEmpty sobek.Value) (*s
 	promise, resolve, reject := promises.New(s.vu)
 
 	if err := s.connectPrepare(portOrOptions, hostOrEmpty); err != nil {
-		tcpErr := s.handleError(err, "connect", s.tags())
-		if tcpErr == nil {
-			tcpErr = newTCPError(err, "connect")
-		}
-
-		reject(tcpErr)
+		s.rejectWithTCPError(reject, err, "connect", s.tags())
 
 		return promise, nil
 	}
 
 	go func() {
 		if err := s.connectExecute(); err != nil {
-			tcpErr := s.handleError(err, "connect", s.tags())
-			if tcpErr == nil {
-				tcpErr = newTCPError(err, "connect")
-			}
-
-			reject(tcpErr)
+			s.rejectWithTCPError(reject, err, "connect", s.tags())
 
 			return
 		}
