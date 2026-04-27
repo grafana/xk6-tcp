@@ -33,8 +33,8 @@ exports.default = async () => {
     fail(`unexpected socket error: ${err}`)
   })
 
-  await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
-  await socket.writeAsync("event order")
+  await socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+  await socket.write("event order")
   await closed
 
   const actual = events.join(" -> ")

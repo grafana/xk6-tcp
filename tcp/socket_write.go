@@ -24,7 +24,7 @@ type writeOptions struct {
 	Tags     map[string]string
 }
 
-func (s *socket) writeAsync(data sobek.Value, opts *writeOptions) (*sobek.Promise, error) {
+func (s *socket) write(data sobek.Value, opts *writeOptions) (*sobek.Promise, error) {
 	promise, resolve, reject := promises.New(s.vu)
 
 	dataBytes, opts, err := s.writePrepare(data, opts)

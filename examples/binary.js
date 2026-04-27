@@ -48,9 +48,9 @@ export default async function () {
     const host = __ENV.TCP_ECHO_HOST || "localhost";
     const port = __ENV.TCP_ECHO_PORT || "8080";
 
-    await socket.connectAsync(port, host);
+    await socket.connect(port, host);
     console.log("Connected to server");
     console.log("Sending binary packet:", Array.from(packet));
-    await socket.writeAsync(packet.buffer);
+    await socket.write(packet.buffer);
     await closed;
 }

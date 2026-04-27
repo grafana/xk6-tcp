@@ -33,9 +33,9 @@ export default async function () {
     console.log(`Socket error: ${err}`)
   })
 
-  await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+  await socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
   console.log("Connected")
-  await socket.writeAsync("Hey there\n")
+  await socket.write("Hey there\n")
 
   await closePromise
 }
@@ -47,18 +47,14 @@ The [examples](./examples/) directory contains comprehensive examples demonstrat
 
 ## Async Programming
 
-**xk6-tcp** fully supports async and event-based programming. You can use async/await patterns with methods like `connectAsync()` and `writeAsync()`, as well as standard JavaScript asynchronous constructs like [setTimeout()](https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout) and [setInterval()](https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval).
-
-## Migration Note
-
-The public JavaScript API is async-first. If you were previously using `connect()` or `write()`, migrate those calls to `connectAsync()` and `writeAsync()`.
+**xk6-tcp** uses an async-first JavaScript API. Methods like `connect()` and `write()` return Promises, so they work naturally with `async`/`await`, while socket lifecycle and data events continue to flow through `.on()` handlers. You can also combine socket operations with standard JavaScript asynchronous constructs like [setTimeout()](https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout) and [setInterval()](https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval).
 
 ## TLS/SSL Support
 
 **xk6-tcp** supports secure TCP connections using TLS/SSL encryption. Enable TLS by setting the `tls` option when connecting:
 
 ```javascript
-await socket.connectAsync({
+await socket.connect({
   port: 443,
   host: "secure.example.com",
   tls: true  // Enable TLS encryption
@@ -74,7 +70,7 @@ TLS configuration (certificates, verification, cipher suites, etc.) is handled b
 - Message queues with TLS (Kafka, RabbitMQ)
 - Custom secure protocols
 
-See [examples/tls.js](./examples/tls.js), [examples/tls_async.js](./examples/tls_async.js), and [examples/tls_simple.js](./examples/tls_simple.js) for complete examples.
+See [examples/tls.js](./examples/tls.js) and [examples/tls_simple.js](./examples/tls_simple.js) for complete examples.
 
 ## Event-Driven Usage
 
@@ -105,9 +101,9 @@ const socket = new Socket(options);
 
 | Method | Description
 |--------|-------------
-| `connectAsync(port, host?)` | Async version that returns a Promise
-| `connectAsync(options)` | Async version with options
-| `writeAsync(data, options?)` | Async version that returns a Promise
+| `connect(port, host?)` | Returns a Promise that resolves when the connection is established
+| `connect(options)` | Returns a Promise that resolves when the connection is established with options
+| `write(data, options?)` | Returns a Promise that resolves when the data has been written
 | `setTimeout(timeout)` | Sets inactivity timeout in milliseconds (0 to disable)
 | `destroy()` | Destroys the socket and closes the connection
 | `on(event, handler)` | Registers an event handler

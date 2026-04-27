@@ -26,8 +26,8 @@ exports.default = async () => {
     console.log(`Socket error: ${err}`)
   })
 
-  await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
-  await socket.writeAsync("Hey there")
+  await socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+  await socket.write("Hey there")
   await prom
 
   assert(dataHandlerCalled, "data handler was not called")

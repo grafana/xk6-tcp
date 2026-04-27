@@ -25,7 +25,7 @@ exports.default = async () => {
 
   assert(!socket.connected, "socket should not be connected initially")
 
-  await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+  await socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
   await prom
 
   assert(connectHandlerCalled, "connect handler was not called")

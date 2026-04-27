@@ -27,8 +27,8 @@ async function expectEchoed(encoded, options, expected) {
     })
   })
 
-  await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
-  await socket.writeAsync(encoded, options)
+  await socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+  await socket.write(encoded, options)
   await closed
 
   assert(received, "data handler was not called")
@@ -50,7 +50,7 @@ async function expectWriteRejected(data, options, registerErrorHandler) {
   }
 
   try {
-    await socket.writeAsync(data, options)
+    await socket.write(data, options)
   } catch (_) {
     rejected = true
   }
@@ -58,7 +58,7 @@ async function expectWriteRejected(data, options, registerErrorHandler) {
   await errorPromise
   socket.destroy()
 
-  assert(rejected, "writeAsync should reject")
+  assert(rejected, "write should reject")
   if (registerErrorHandler) {
     assert(errorFired, "error handler was not called")
   }
@@ -94,8 +94,8 @@ exports.default = async () => {
       })
     })
 
-    await socket.connectAsync(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
-    await socket.writeAsync(new Uint8Array([72, 101, 108, 108, 111]).buffer, { encoding: "hex" })
+    await socket.connect(__ENV.TCP_ECHO_PORT, __ENV.TCP_ECHO_HOST)
+    await socket.write(new Uint8Array([72, 101, 108, 108, 111]).buffer, { encoding: "hex" })
     await closed
 
     assert(received, "ArrayBuffer data handler was not called")

@@ -9,13 +9,13 @@ exports.default = async () => {
     let rejected = false
 
     try {
-      await socket.connectAsync(true)
+      await socket.connect(true)
     } catch (_) {
       rejected = true
     }
 
     socket.destroy()
-    assert(rejected, "connectAsync should reject on invalid argument type")
+    assert(rejected, "connect should reject on invalid argument type")
   }
 
   {
@@ -23,29 +23,13 @@ exports.default = async () => {
     let rejected = false
 
     try {
-      await socket.connectAsync(0, "127.0.0.1")
+      await socket.connect(0, "127.0.0.1")
     } catch (_) {
       rejected = true
     }
 
     socket.destroy()
-    assert(rejected, "connectAsync should reject on connection failure")
-  }
-
-  {
-    const socket = new tcp.Socket()
-    let rejected = false
-
-    socket.on("error", () => {})
-
-    try {
-      await socket.connectAsync(0, "127.0.0.1")
-    } catch (_) {
-      rejected = true
-    }
-
-    socket.destroy()
-    assert(rejected, "connectAsync should reject on connection failure even with an error handler")
+    assert(rejected, "connect should reject on connection failure")
   }
 
   {
@@ -55,12 +39,28 @@ exports.default = async () => {
     socket.on("error", () => {})
 
     try {
-      await socket.connectAsync(true)
+      await socket.connect(0, "127.0.0.1")
     } catch (_) {
       rejected = true
     }
 
     socket.destroy()
-    assert(rejected, "connectAsync should reject on invalid argument type even with an error handler")
+    assert(rejected, "connect should reject on connection failure even with an error handler")
+  }
+
+  {
+    const socket = new tcp.Socket()
+    let rejected = false
+
+    socket.on("error", () => {})
+
+    try {
+      await socket.connect(true)
+    } catch (_) {
+      rejected = true
+    }
+
+    socket.destroy()
+    assert(rejected, "connect should reject on invalid argument type even with an error handler")
   }
 }

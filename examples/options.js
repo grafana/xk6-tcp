@@ -34,7 +34,7 @@ export default async function () {
     const host = __ENV.TCP_ECHO_HOST || "localhost";
     const port = __ENV.TCP_ECHO_PORT || "8080";
 
-    await socket.connectAsync({
+    await socket.connect({
         port: port,
         host: host,
         tags: {
@@ -43,7 +43,7 @@ export default async function () {
     });
     console.log("Connected with tagged metrics");
 
-    await socket.writeAsync("GET /status", {
+    await socket.write("GET /status", {
         tags: {
             operation: "health-check",
             method: "GET"

@@ -38,9 +38,9 @@ export default async function () {
                 console.error(`Connection ${i} error:`, err);
             });
 
-            await socket.connectAsync(port, host);
+            await socket.connect(port, host);
             console.log(`Connection ${i} established`);
-            await socket.writeAsync(`Hello from connection ${i}`);
+            await socket.write(`Hello from connection ${i}`);
             await closed;
 
             if (terminalError) {

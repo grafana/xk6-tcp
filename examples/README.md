@@ -42,24 +42,15 @@ TCP_ECHO_HOST=localhost TCP_ECHO_PORT=8080 ./k6 run examples/hello.js
 ## Examples Overview
 
 ### [hello.js](hello.js)
-**Basic async-first programming**
-
-Demonstrates the fundamental pattern of TCP communication using `connectAsync()`, `writeAsync()`, and socket event handlers.
-
-**Key concepts:**
-- Async-first API
-- Basic connect/write/read pattern
-- String data handling
-
-### [hello_async.js](hello_async.js)
 **Async/await pattern**
 
-Shows how to use async methods (`connectAsync`, `writeAsync`) for cleaner code flow with promises.
+Shows how to use async methods (`connect`, `write`) for cleaner code flow with promises.
 
 **Key concepts:**
 - Async/await operations
 - Promise-based control flow
 - Synchronous-style code
+- Basic connect/write/read pattern
 
 ### [echo.js](echo.js)
 **Bidirectional communication**
@@ -141,25 +132,15 @@ Demonstrates k6 load testing with TCP sockets, including multiple VUs, threshold
 ### [tls.js](tls.js)
 **TLS/SSL secure connections**
 
-Shows how to establish encrypted TCP connections using TLS/SSL with the async API.
+Shows how to establish an encrypted TCP connection, send an HTTPS-style request, and read back a response.
 
 **Key concepts:**
 - TLS encryption
 - Secure connections
 - HTTPS-like protocols
+- Response handling over TLS
 - k6 TLS configuration
 - Certificate handling
-
-### [tls_async.js](tls_async.js)
-**TLS with async/await**
-
-Demonstrates secure TLS connections using async/await pattern for better flow control.
-
-**Key concepts:**
-- TLS + async operations
-- Promise-based TLS handshake
-- Secure data exchange
-- Connection lifecycle with TLS
 
 ### [tls_simple.js](tls_simple.js)
 **Minimal TLS example**
@@ -169,7 +150,7 @@ This is the smallest possible TLS connection example in the repository.
 
 **Key concepts:**
 - Minimal TLS connection setup
-- `connectAsync()` with `tls: true`
+- `connect()` with `tls: true`
 - Short connect / close lifecycle
 
 ### [basic.js](basic.js)
@@ -195,13 +176,13 @@ Examples use different environment variables depending on the script:
 - `HTTP_ECHO_HOST` - HTTP echo server host (automatically set by with-echo)
 - `HTTP_ECHO_PORT` - HTTP echo server port (automatically set by with-echo)
 - `HTTP_ECHO_URL` - Full HTTP echo server URL (automatically set by with-echo)
-- `TLS_HOST` - TLS target hostname for `tls.js` and `tls_async.js` (default: `example.com`)
-- `TLS_PORT` - TLS target port for `tls.js` and `tls_async.js` (default: `443`)
+- `TLS_HOST` - TLS target hostname for `tls.js` (default: `example.com`)
+- `TLS_PORT` - TLS target port for `tls.js` (default: `443`)
 
 Notes:
 
 - `with-echo` sets the `TCP_ECHO_*` and `HTTP_ECHO_*` variables automatically.
-- `tls.js` and `tls_async.js` read `TLS_HOST` and `TLS_PORT` if you want to target a different TLS endpoint.
+- `tls.js` reads `TLS_HOST` and `TLS_PORT` if you want to target a different TLS endpoint.
 - `tls_simple.js` does not use environment variables; it always connects to `example.com:443`.
 
 ## Testing with k6 Options
@@ -229,8 +210,8 @@ socket.on("event", (data) => {
 
 ### Async Pattern
 ```javascript
-await socket.connectAsync(port, host);
-await socket.writeAsync(data);
+await socket.connect(port, host);
+await socket.write(data);
 ```
 
 ### Promise Coordination

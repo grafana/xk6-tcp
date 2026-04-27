@@ -116,14 +116,14 @@ States are defined in `tcp/socket_state.go`:
 Typical lifecycle:
 
 1. constructor creates a disconnected socket
-2. `connectAsync()` moves the socket to `opening`
+2. `connect()` moves the socket to `opening`
 3. resolve + dial (+ optional TLS) moves it to `open`
 4. read loop exit or explicit `destroy()` moves it to `destroyed`
 
 ```mermaid
 stateDiagram-v2
     [*] --> disconnected
-    disconnected --> opening: connectAsync()
+    disconnected --> opening: connect()
     opening --> open: resolve + dial (+ TLS)
     opening --> disconnected: connect failure
     opening --> destroyed: destroy()
@@ -134,11 +134,11 @@ stateDiagram-v2
 
 ## Connect Path
 
-The public connect API is `connectAsync()` in `tcp/socket_connect.go`.
+The public connect API is `connect()` in `tcp/socket_connect.go`.
 
-### `connectAsync()`
+### `connect()`
 
-`connectAsync()` creates a Sobek promise with `promises.New()` and then:
+`connect()` creates a Sobek promise with `promises.New()` and then:
 
 1. runs `connectPrepare()`
 2. rejects immediately on prepare errors
@@ -149,8 +149,8 @@ The public connect API is `connectAsync()` in `tcp/socket_connect.go`.
 
 `connectPrepare()` accepts either:
 
-- `connectAsync(port, host?)`
-- `connectAsync(options)`
+- `connect(port, host?)`
+- `connect(options)`
 
 It normalizes arguments into `connectOptions` and stores them on `s.connectOpts`.
 
@@ -216,7 +216,7 @@ The loop goroutine starts in the constructor, before any connection attempt:
 
 - `go s.loop(ctx)` runs in `module.socket()`
 
-So by the time `connectAsync()` is called, the loop goroutine is already waiting to receive from `callChan`.
+So by the time `connect()` is called, the loop goroutine is already waiting to receive from `callChan`.
 
 ### Loop behavior
 
@@ -292,7 +292,7 @@ The fixed `readBuf [4096]byte` keeps the read side allocation-light. Bytes are c
 
 The write path lives in `tcp/socket_write.go`.
 
-`writeAsync()`:
+`write()`:
 
 1. creates a Sobek promise
 2. normalizes the input with `writePrepare()`
