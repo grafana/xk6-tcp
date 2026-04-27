@@ -17,10 +17,7 @@ func (s *socket) readyState() string {
 }
 
 func (s *socket) isReadable() bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	return s.state == socketStateOpen
+	return s.isConnected()
 }
 
 func (s *socket) isConnected() bool {

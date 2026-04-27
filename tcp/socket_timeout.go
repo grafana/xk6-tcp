@@ -24,15 +24,14 @@ func (s *socket) setTimeout(timeoutMs int64) (*sobek.Object, error) {
 		s.log.WithField("timeout", s.timeout).Debug("Timeout set")
 	}
 
-	// If we have an active connection, update its deadline
-	if s.conn != nil && s.timeout > 0 {
-		deadline := time.Now().Add(s.timeout)
-		if err := s.conn.SetReadDeadline(deadline); err != nil {
-			return s.this, err
+	// If we have an active connection, update its deadline.
+	if s.conn != nil {
+		var deadline time.Time
+		if s.timeout > 0 {
+			deadline = time.Now().Add(s.timeout)
 		}
-	} else if s.conn != nil && s.timeout == 0 {
-		// Clear the deadline
-		if err := s.conn.SetReadDeadline(time.Time{}); err != nil {
+
+		if err := s.conn.SetReadDeadline(deadline); err != nil {
 			return s.this, err
 		}
 	}

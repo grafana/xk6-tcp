@@ -1,7 +1,6 @@
 package tcp
 
 import (
-	"fmt"
 	"sort"
 
 	"go.k6.io/k6/js/modules"
@@ -48,11 +47,7 @@ func newTCPMetrics(vu modules.VU) *tcpMetrics {
 	}
 }
 
-func addToTagSet(ts *metrics.TagSet, tags map[string]string, nv ...string) *metrics.TagSet {
-	if len(nv)%2 != 0 {
-		panic(fmt.Errorf("%w: expected even number of tags", errWrongNumberOfArgs))
-	}
-
+func addToTagSet(ts *metrics.TagSet, tags map[string]string) *metrics.TagSet {
 	keys := make([]string, 0, len(tags))
 
 	for k := range tags {
@@ -63,10 +58,6 @@ func addToTagSet(ts *metrics.TagSet, tags map[string]string, nv ...string) *metr
 
 	for _, k := range keys {
 		ts = ts.With(k, tags[k])
-	}
-
-	for i := 0; i < len(nv); i += 2 {
-		ts = ts.With(nv[i], nv[i+1])
 	}
 
 	return ts

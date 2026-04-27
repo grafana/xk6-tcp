@@ -1,14 +1,11 @@
 package tcp
 
 import (
-	"errors"
 	"strconv"
 	"time"
 
 	"go.k6.io/k6/metrics"
 )
-
-var errWrongNumberOfArgs = errors.New("wrong number of arguments")
 
 func (s *socket) currentTags() *metrics.TagSet {
 	return s.vu.State().Tags.GetCurrentValues().Tags
@@ -33,12 +30,12 @@ func (s *socket) tags() *metrics.TagSet {
 	return tags
 }
 
-func (s *socket) addErrorMetrics(ts *metrics.TagSet, nv ...string) {
+func (s *socket) addErrorMetrics(ts *metrics.TagSet) {
 	metrics.PushIfNotDone(s.vu.Context(), s.vu.State().Samples, metrics.Samples{
 		metrics.Sample{
 			TimeSeries: metrics.TimeSeries{
 				Metric: s.metrics.tcpErrors,
-				Tags:   addToTagSet(ts, nil, nv...),
+				Tags:   ts,
 			},
 			Time:  time.Now(),
 			Value: float64(1),

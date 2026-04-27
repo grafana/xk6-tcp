@@ -106,6 +106,15 @@ func (s *socket) handleError(err error, method string, ts *metrics.TagSet) error
 	return wrapped
 }
 
+func (s *socket) rejectWithTCPError(reject func(any), err error, method string, ts *metrics.TagSet) {
+	tcpErr := s.handleError(err, method, ts)
+	if tcpErr == nil {
+		tcpErr = newTCPError(err, method)
+	}
+
+	reject(tcpErr)
+}
+
 // TCPError represents an error that occurred during a TCP operation.
 type TCPError struct { //nolint:revive
 	Name    string

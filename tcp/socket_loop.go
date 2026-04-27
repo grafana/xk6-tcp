@@ -2,7 +2,6 @@ package tcp
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/mstoykov/k6-taskqueue-lib/taskqueue"
 )
@@ -19,7 +18,7 @@ func (s *socket) loop(ctx context.Context) {
 		case call := <-s.callChan:
 			tq.Queue(call)
 		case <-ctx.Done():
-			slog.Debug("Socket context done, stopping event loop")
+			s.log.Debug("Socket context done, stopping event loop")
 
 			return
 		}
