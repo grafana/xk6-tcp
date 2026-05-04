@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/grafana/sobek"
-	"go.k6.io/k6/ext"
-	"go.k6.io/k6/js/modulestest"
+	"go.k6.io/k6/v2/ext"
+	"go.k6.io/k6/v2/js/modulestest"
 )
 
 // RunFile runs a single testscript file using a minimal test runtime.

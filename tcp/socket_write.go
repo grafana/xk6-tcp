@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 
 	"github.com/grafana/sobek"
-	"go.k6.io/k6/js/promises"
+	"go.k6.io/k6/v2/js/promises"
 )
 
 var (

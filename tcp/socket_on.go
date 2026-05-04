@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/grafana/sobek"
-	"go.k6.io/k6/metrics"
+	"go.k6.io/k6/v2/metrics"
 )
 
 var events = map[string]struct{}{ //nolint:gochecknoglobals
