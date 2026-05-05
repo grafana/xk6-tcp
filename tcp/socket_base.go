@@ -10,9 +10,9 @@ import (
 
 	"github.com/grafana/sobek"
 	"github.com/sirupsen/logrus"
-	"go.k6.io/k6/js/common"
-	"go.k6.io/k6/js/modules"
-	"go.k6.io/k6/lib"
+	"go.k6.io/k6/v2/js/common"
+	"go.k6.io/k6/v2/js/modules"
+	"go.k6.io/k6/v2/lib"
 )
 
 var errInvalidType = errors.New("invalid type")
