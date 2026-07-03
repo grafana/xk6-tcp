@@ -14,5 +14,5 @@ func TestMain(m *testing.M) {
 
 	server.Stop()
 
-	os.Exit(code)
+	os.Exit(code) //nolint:forbidigo // standard TestMain exit
 }

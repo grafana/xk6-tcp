@@ -25,7 +25,7 @@ func RunFileIntegration(t *testing.T, file string) {
 
 	t.Attr("script", file)
 
-	exe, err := os.Executable()
+	exe, err := os.Executable() //nolint:forbidigo // test harness needs the test binary path
 	if err != nil {
 		t.Fatalf("failed to get current executable: %v", err)
 	}
@@ -91,7 +91,7 @@ func runIntegrationSubprocess(t *testing.T) {
 		return
 	}
 
-	os.Args = []string{
+	os.Args = []string{ //nolint:forbidigo // test harness sets argv to invoke the embedded k6
 		"k6",
 		"--quiet",
 		"--log-format=raw",

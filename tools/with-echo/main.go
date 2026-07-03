@@ -24,11 +24,11 @@ type CommandRunner struct {
 }
 
 func main() {
-	os.Exit(run())
+	os.Exit(run()) //nolint:forbidigo // standalone CLI helper tool; os access is intended
 }
 
 func run() int {
-	if len(os.Args) == 1 {
+	if len(os.Args) == 1 { //nolint:forbidigo // standalone CLI helper tool; os access is intended
 		printUsage()
 
 		return 1
@@ -42,12 +42,12 @@ func run() int {
 	}
 	defer runner.Shutdown()
 
-	return runner.Run(os.Args[1], os.Args[2:]...)
+	return runner.Run(os.Args[1], os.Args[2:]...) //nolint:forbidigo // standalone CLI helper tool; os access is intended
 }
 
 // printUsage prints the command usage information.
 func printUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s <command> [args...]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s <command> [args...]\n", os.Args[0]) //nolint:forbidigo,gosec // CLI usage, not XSS
 }
 
 // NewCommandRunner creates a new CommandRunner with embedded TCP and HTTP echo servers.
@@ -73,9 +73,9 @@ func (cr *CommandRunner) Run(cmdName string, cmdArgs ...string) int {
 	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...) //#nosec G702,G204
 
 	// Connect stdin, stdout, stderr to preserve interactivity
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin   //nolint:forbidigo // standalone CLI helper tool; os access is intended
+	cmd.Stdout = os.Stdout //nolint:forbidigo // standalone CLI helper tool; os access is intended
+	cmd.Stderr = os.Stderr //nolint:forbidigo // standalone CLI helper tool; os access is intended
 
 	// Set up signal handling
 	sigChan := make(chan os.Signal, 1)

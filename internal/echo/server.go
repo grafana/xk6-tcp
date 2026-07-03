@@ -148,7 +148,7 @@ func (s *Server) Setenv() error {
 }
 
 func setenv(key, value string) error {
-	if err := os.Setenv(key, value); err != nil {
+	if err := os.Setenv(key, value); err != nil { //nolint:forbidigo // test echo server exports connection details via env
 		return fmt.Errorf("failed to set %s environment variable: %w", key, err)
 	}
 

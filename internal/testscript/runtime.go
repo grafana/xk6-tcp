@@ -46,7 +46,7 @@ func newTestRuntime(t *testing.T, modulePairs ...any) *modulestest.Runtime {
 
 	env := make(map[string]string)
 
-	for _, e := range os.Environ() {
+	for _, e := range os.Environ() { //nolint:forbidigo // test harness snapshots the process env
 		if key, value, ok := strings.Cut(e, "="); ok {
 			env[key] = value
 		}
