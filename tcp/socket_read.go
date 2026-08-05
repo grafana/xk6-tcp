@@ -84,7 +84,7 @@ func (s *socket) readLoopStep(conn net.Conn, timeout time.Duration) bool {
 		return true
 	}
 
-	e := s.handleError(err, "read", nil)
+	e := s.handleError(err, "read", s.currentTags())
 	if e != nil {
 		s.log.WithError(e).Error("error in error handler")
 	}
