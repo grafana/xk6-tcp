@@ -7,7 +7,7 @@ toolchain go1.25.14
 require (
 	github.com/grafana/sobek v0.0.0-20260727154728-7781506a890f
 	github.com/mstoykov/k6-taskqueue-lib v0.1.3
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.10.2
 	github.com/stretchr/testify v1.12.1
 	go.k6.io/k6/v2 v2.2.0
 )
