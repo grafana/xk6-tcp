@@ -6,6 +6,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const exampleHost = "example.com"
+
 // TestTLSField verifies that the TLS field in connectOptions can be set.
 func TestTLSField(t *testing.T) {
 	t.Parallel()
@@ -18,7 +20,7 @@ func TestTLSField(t *testing.T) {
 		{
 			name: "TLS enabled",
 			opts: connectOptions{
-				Host: "example.com",
+				Host: exampleHost,
 				Port: 443,
 				TLS:  true,
 			},
@@ -27,7 +29,7 @@ func TestTLSField(t *testing.T) {
 		{
 			name: "TLS disabled",
 			opts: connectOptions{
-				Host: "example.com",
+				Host: exampleHost,
 				Port: 80,
 				TLS:  false,
 			},
@@ -36,7 +38,7 @@ func TestTLSField(t *testing.T) {
 		{
 			name: "TLS default (false)",
 			opts: connectOptions{
-				Host: "example.com",
+				Host: exampleHost,
 				Port: 80,
 			},
 			want: false,

@@ -146,7 +146,7 @@ func TestConnectOptionsAddress(t *testing.T) {
 		},
 		{
 			name:     "domain with custom port",
-			opts:     connectOptions{Host: "example.com", Port: 9999},
+			opts:     connectOptions{Host: exampleHost, Port: 9999},
 			expected: "example.com:9999",
 		},
 		{
@@ -212,14 +212,14 @@ func TestConnectPrepareWithPort(t *testing.T) {
 	s := newSocket(mod.log, mod.vu, mod.metrics)
 
 	port := mod.vu.Runtime().ToValue(8080)
-	host := mod.vu.Runtime().ToValue("example.com")
+	host := mod.vu.Runtime().ToValue(exampleHost)
 
 	err := s.connectPrepare(port, host)
 
 	require.NoError(t, err)
 	require.NotNil(t, s.connectOpts)
 	require.Equal(t, 8080, s.connectOpts.Port)
-	require.Equal(t, "example.com", s.connectOpts.Host)
+	require.Equal(t, exampleHost, s.connectOpts.Host)
 }
 
 func TestConnectPrepareWithDefaultHost(t *testing.T) {

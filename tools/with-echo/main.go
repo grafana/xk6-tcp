@@ -47,7 +47,7 @@ func run() int {
 
 // printUsage prints the command usage information.
 func printUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s <command> [args...]\n", os.Args[0]) //nolint:forbidigo,gosec // CLI usage, not XSS
+	fmt.Fprintf(os.Stderr, "Usage: %s <command> [args...]\n", os.Args[0]) //nolint:forbidigo // CLI usage
 }
 
 // NewCommandRunner creates a new CommandRunner with embedded TCP and HTTP echo servers.
