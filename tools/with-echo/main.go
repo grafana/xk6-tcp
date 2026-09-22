@@ -135,8 +135,7 @@ func (cr *CommandRunner) waitForCommand(cmd *exec.Cmd) int {
 		return 0
 	}
 
-	var exitError *exec.ExitError
-	if errors.As(err, &exitError) {
+	if exitError, ok := errors.AsType[*exec.ExitError](err); ok {
 		return exitError.ExitCode()
 	}
 
