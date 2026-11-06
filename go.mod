@@ -49,7 +49,7 @@ require (
 	github.com/influxdata/influxdb1-client v0.0.0-20190402204710-8ff2fc3824fc // indirect
 	github.com/jhump/protoreflect v1.18.0 // indirect
 	github.com/jhump/protoreflect/v2 v2.0.0-beta.1 // indirect
-	github.com/klauspost/compress v1.20.0 // indirect
+	github.com/klauspost/compress v1.20.2 // indirect
 	github.com/mailru/easyjson v0.9.2 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
